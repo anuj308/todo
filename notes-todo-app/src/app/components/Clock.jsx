@@ -1,46 +1,31 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { FiClock } from 'react-icons/fi';
 
 export default function Clock() {
-  const [date, setDate] = useState(null);
-  const [mounted, setMounted] = useState(false);
-  
+  const [time, setTime] = useState(new Date());
+
   useEffect(() => {
-    setMounted(true);
-    setDate(new Date());
-    
     const timer = setInterval(() => {
-      setDate(new Date());
+      setTime(new Date());
     }, 1000);
-    
+
     return () => {
       clearInterval(timer);
     };
   }, []);
 
-  // Only render the clock after component has mounted on the client
-  if (!mounted || !date) {
-    return <div className="text-right h-12"></div>; // Empty placeholder with same height
-  }
-
-  const formattedDate = date.toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
-  
-  const formattedTime = date.toLocaleTimeString('en-US', {
+  const formattedTime = time.toLocaleTimeString([], {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit'
   });
 
   return (
-    <div className="text-right">
-      <div className="text-sm text-gray-600">{formattedDate}</div>
-      <div className="text-xl font-semibold">{formattedTime}</div>
+    <div className="flex items-center space-x-2 text-sm font-medium">
+      <FiClock className="w-4 h-4" />
+      <span>{formattedTime}</span>
     </div>
   );
 }

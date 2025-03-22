@@ -2,6 +2,7 @@
 
 import { useContext, useState } from 'react';
 import { AppContext } from '../context/AppContext';
+import { FiPlus } from 'react-icons/fi';
 
 export default function TodoForm() {
   const [text, setText] = useState('');
@@ -21,14 +22,15 @@ export default function TodoForm() {
         type="text"
         value={text}
         onChange={(e) => setText(e.target.value)}
-        className="flex-grow p-2 border rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="flex-grow p-2 border rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
         placeholder="Add a new task..."
         required
       />
       <button 
         type="submit" 
-        className="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-r-md transition-colors"
+        className="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-r-md transition-colors flex items-center"
       >
+        <FiPlus className="mr-1" />
         Add
       </button>
     </form>
