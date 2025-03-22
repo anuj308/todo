@@ -1,0 +1,22 @@
+{
+  "name": "portfolio-tracker",
+  "version": "1.0.0",
+  "description": "A simple portfolio tracker application to manage and visualize stock investments.",
+  "main": "index.html",
+  "scripts": {
+    "start": "live-server .",
+    "build": "tailwindcss build css/tailwind.css -o css/output.css"
+  },
+  "keywords": [
+    "portfolio",
+    "tracker",
+    "stocks",
+    "investment"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "live-server": "^1.2.1",
+    "tailwindcss": "^4.0.14"
+  }
+}

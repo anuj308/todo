@@ -1,0 +1,15 @@
+
+:root {
+  --foreground-rgb: 23, 23, 23;
+  --background-rgb: 255, 255, 255;}
+
+.dark {
+  --foreground-rgb: 237, 237, 237;
+  --background-rgb: 10, 10, 10;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background-color: rgb(var(--background-rgb));
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
