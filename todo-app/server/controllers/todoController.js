@@ -1,5 +1,5 @@
 // server/controllers/todoController.js
-const Todo = require('../models/todoModel');
+import Todo from '../models/todoModel.js';
 
 // @desc    Get all todos
 // @route   GET /api/todos
@@ -72,9 +72,4 @@ const deleteTodo = async (req, res) => {
   }
 };
 
-module.exports = {
-  getTodos,
-  createTodo,
-  updateTodo,
-  deleteTodo,
-};
+export { getTodos, createTodo, updateTodo, deleteTodo };

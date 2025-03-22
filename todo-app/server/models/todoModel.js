@@ -1,5 +1,5 @@
 // server/models/todoModel.js
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const todoSchema = mongoose.Schema(
   {
@@ -17,4 +17,7 @@ const todoSchema = mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model('Todo', todoSchema);
+const Todo = mongoose.model('Todo', todoSchema);
+
+export default Todo;
+
