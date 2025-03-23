@@ -4,10 +4,23 @@ import axios from 'axios';
 
 export const TodoContext = createContext();
 
+// Get base URL based on environment
+const getBaseUrl = () => {
+  // If running on Vercel (production)
+  if (import.meta.env.PROD) {
+    return '/api';
+  }
+  // If running locally (development)
+  return 'http://localhost:5000/api';
+};
+
 export const TodoProvider = ({ children }) => {
   const [todos, setTodos] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Get API base URL
+  const API_URL = getBaseUrl();
 
   useEffect(() => {
     fetchTodos();
@@ -17,7 +30,7 @@ export const TodoProvider = ({ children }) => {
   const fetchTodos = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get('/api/todos');
+      const response = await axios.get(`${API_URL}/todos`);
       setTodos(response.data);
       setError(null);
     } catch (error) {
@@ -31,7 +44,7 @@ export const TodoProvider = ({ children }) => {
   // Add a new todo
   const addTodo = async (text) => {
     try {
-      const response = await axios.post('/api/todos', { text });
+      const response = await axios.post(`${API_URL}/todos`, { text });
       setTodos([response.data, ...todos]);
       return response.data;
     } catch (error) {
@@ -43,7 +56,7 @@ export const TodoProvider = ({ children }) => {
   // Toggle todo completion status
   const toggleTodo = async (id, completed) => {
     try {
-      const response = await axios.put(`/api/todos/${id}`, { completed });
+      const response = await axios.put(`${API_URL}/todos/${id}`, { completed });
       setTodos(
         todos.map((todo) =>
           todo._id === id ? { ...todo, completed: response.data.completed } : todo
@@ -59,7 +72,7 @@ export const TodoProvider = ({ children }) => {
   // Delete a todo
   const deleteTodo = async (id) => {
     try {
-      await axios.delete(`/api/todos/${id}`);
+      await axios.delete(`${API_URL}/todos/${id}`);
       setTodos(todos.filter((todo) => todo._id !== id));
     } catch (error) {
       setError('Failed to delete todo');
