@@ -1,4 +1,3 @@
-// server/config/db.js
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import path from 'path';
@@ -7,26 +6,64 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load environment variables again to be safe
+// Load environment variables
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
-// Fallback MongoDB URI in case environment variable fails
-const fallbackURI = 'mongodb+srv://anujkumarsharma2023:mascssco@fastpy.qf9ces1.mongodb.net/todo-app?retryWrites=true&w=majority&appName=fastpy';
+// Cache the database connection for better performance in serverless environments
+let cachedConnection = null;
 
 const connectDB = async () => {
+  // If we already have a connection, don't create a new one
+  if (cachedConnection) {
+    console.log('Using existing MongoDB connection');
+    return cachedConnection;
+  }
+
   try {
-    const uri = process.env.MONGO_URI || fallbackURI;
-    console.log("Attempting to connect to MongoDB with URI:", uri ? "URI is defined" : "URI is undefined");
+    const uri = process.env.MONGO_URI;
+    
+    // Log connection attempt without exposing the full URI for security
+    console.log("Connecting to MongoDB...");
     
     if (!uri) {
       throw new Error("MongoDB URI is not defined. Check your .env file.");
     }
     
-    const conn = await mongoose.connect(uri);
+    // Add connection options optimized for serverless environments
+    const options = {
+      // Serverless environment optimizations
+      bufferCommands: false, // Disable mongoose buffering
+      maxPoolSize: 10, // Limit number of sockets
+      serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
+      socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
+      family: 4 // Use IPv4, skip trying IPv6
+    };
+
+    // Connect to MongoDB
+    const conn = await mongoose.connect(uri, options);
+    
+    // Store the connection in our cache
+    cachedConnection = conn;
+    
     console.log(`MongoDB Connected: ${conn.connection.host}`);
+    
+    // Handle connection errors after initial connection
+    mongoose.connection.on('error', err => {
+      console.error('MongoDB connection error:', err);
+      cachedConnection = null;
+    });
+    
+    return conn;
   } catch (error) {
-    console.error(`Error: ${error.message}`);
-    process.exit(1);
+    console.error(`MongoDB connection error: ${error.message}`);
+    
+    // For non-serverless environments, exit process on connection failure
+    // In serverless, we'll just throw the error and let the function fail
+    if (process.env.NODE_ENV !== 'production') {
+      process.exit(1);
+    }
+    
+    throw error;
   }
 };
 
