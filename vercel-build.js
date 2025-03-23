@@ -16,4 +16,10 @@ if (!fs.existsSync(outputDir)) {
   fs.mkdirSync(outputDir, { recursive: true });
 }
 
+// Create server output directory if it doesn't exist
+const serverOutputDir = path.join(__dirname, 'client', 'dist', 'server');
+if (!fs.existsSync(serverOutputDir)) {
+  fs.mkdirSync(serverOutputDir, { recursive: true });
+}
+
 console.log('Build completed successfully!');
