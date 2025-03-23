@@ -5,14 +5,26 @@
   "type": "module",
   "main": "server/server.js",
   "scripts": {
+   
     "start": "node server/server.js",
     "server": "nodemon server/server.js",
     "client": "cd client && npm run dev",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
-    "build": "npm install-all && cd client && npm run build",
-    "install-client": "cd client && npm install",
-    "install-server": "npm install",
-    "install-all": "npm install && npm run install-client"
+    
+    "client:build": "cd client && npm run build",
+    "client:install": "cd client && npm install",
+    
+    "server:install": "npm install",
+    
+    "install-all": "npm install && npm run client:install",
+    
+    "build": "npm run install-all && npm run client:build",
+    
+    "vercel-build": "npm run install-all && npm run client:build && npm run vercel-postbuild",
+    "vercel-postbuild": "mkdir -p client/dist && cp -r client/dist/* client/dist/",
+    
+    "debug-build": "npm run install-all && npm run client:build && ls -la client/dist",
+    "debug-vercel": "echo 'Current directory:' && pwd && echo 'Directory contents:' && ls -la"
   },
   "keywords": [
     "todo",
@@ -25,16 +37,16 @@
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.7",
-    "express": "^4.18.3",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.2.1"
+    "mongoose": "^8.0.0"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
-    "nodemon": "^3.1.0"
+    "nodemon": "^3.0.1"
   },
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=16.0.0"
   }
 }
