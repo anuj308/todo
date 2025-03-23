@@ -12,7 +12,7 @@
     "build": "npm run install-all && cd client && npm run build",
     "install-client": "cd client && npm install",
     "install-server": "npm install",
-    "install-all": "npm run install-server && npm run install-client"
+    "install-all": "npm install && npm run install-client"
   },
   "keywords": [
     "todo",

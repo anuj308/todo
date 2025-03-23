@@ -32,6 +32,9 @@ app.use(express.json());
 // Routes
 app.use('/api/todos', todoRoutes);
 
+app.all('/api/*', (req, res) => {
+  res.status(404).json({ error: 'API endpoint not found' });
+});
 // Serve static assets in production
 if (process.env.NODE_ENV === 'production') {
   // Set static folder
