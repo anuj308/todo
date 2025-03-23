@@ -39,10 +39,9 @@ app.all('/api/*', (req, res) => {
 
 // Serve static files if in production
 if (process.env.NODE_ENV === 'production') {
-  // Set static folder
-  const clientBuildPath = path.join(__dirname, '../client/dist');
+  // Set static folder - adjusted for Vercel's file structure
+  const clientBuildPath = path.join(process.cwd(), 'client/dist');
   
-  // Log the build path to debug
   console.log('Serving static files from:', clientBuildPath);
   
   app.use(express.static(clientBuildPath));
