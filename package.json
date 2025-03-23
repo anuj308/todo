@@ -17,10 +17,10 @@
     "client:build": "cd client && npm run build",
     "build": "npm run install-all && npm run client:build",
     
-    "vercel-build": "npm run install-all && npm run client:build",
+    "vercel-build": "npm run install-all && npm run client:build && cp -r server ./dist/server",
     "vercel-deploy": "vercel --prod",
     
-    "amplify-build": "node build-amplify.js",
+    "amplify-build": "npm run install-all && npm run client:build && cp -r server ./dist/server",
     "amplify-deploy": "amplify publish",
     
     "eb-build": "npm run install-all && npm run client:build",

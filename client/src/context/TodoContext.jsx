@@ -4,15 +4,13 @@ import axios from 'axios';
 
 export const TodoContext = createContext();
 
-// Get base URL based on environment
+// Use environment variables to determine the API base URL
 const getBaseUrl = () => {
-  // If running on Vercel (production)
-  if (import.meta.env.PROD) {
-    return '/api';
-  }
-  // If running locally (development)
-  return 'http://localhost:5000/api';
+  return import.meta.env.VITE_API_BASE_URL || '/api';
 };
+// const getBaseUrl = () => {
+//   return '/api';
+// };
 
 export const TodoProvider = ({ children }) => {
   const [todos, setTodos] = useState([]);

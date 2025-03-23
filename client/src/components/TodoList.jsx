@@ -14,12 +14,15 @@ function TodoList() {
     return <div className="error">{error}</div>;
   }
 
+  // Ensure todos is an array before mapping
+  const todoList = Array.isArray(todos) ? todos : [];
+
   return (
     <div className="todo-list">
-      {todos.length === 0 ? (
+      {todoList.length === 0 ? (
         <p className="empty-list">No tasks yet. Add your first task above!</p>
       ) : (
-        todos.map((todo) => <TodoItem key={todo._id} todo={todo} />)
+        todoList.map((todo) => <TodoItem key={todo._id} todo={todo} />)
       )}
     </div>
   );

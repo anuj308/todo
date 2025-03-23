@@ -6,6 +6,12 @@ import { FaTrash, FaCheck, FaRegCircle } from 'react-icons/fa';
 function TodoItem({ todo }) {
   const { toggleTodo, deleteTodo } = useContext(TodoContext);
 
+  // Ensure todo has a valid _id before rendering actions
+  if (!todo || !todo._id) {
+    console.error('Invalid todo object:', todo);
+    return null;
+  }
+
   return (
     <div className="todo-item">
       <div className="todo-content">

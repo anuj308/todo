@@ -1,3 +1,15 @@
 {
-  "vercel-build": "vite build"
+  "vercel-build": "vite build",
+  "builds": [
+    {
+      "src": "dist/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ]
 }
