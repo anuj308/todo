@@ -9,7 +9,7 @@
     "server": "nodemon server/server.js",
     "client": "cd client && npm run dev",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
-    "build": "npm run install-all && cd client && npm run build",
+    "build": "npm install-all && cd client && npm run build",
     "install-client": "cd client && npm install",
     "install-server": "npm install",
     "install-all": "npm install && npm run install-client"
