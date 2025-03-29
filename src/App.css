@@ -1,7 +1,8 @@
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
   text-align: center;
 }
 
@@ -43,9 +44,28 @@
 
 /* client/src/App.css */
 .app {
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
+}
+
+.todo-container {
+  max-width: 740px;
+  margin: 0 auto;
+  /* padding: 2rem; */
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.notes-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
 }
 
 header {
@@ -58,12 +78,12 @@ h1 {
   font-size: 2.5rem;
 }
 
-.container {
+/* .container {
   background-color: #fff;
   border-radius: 10px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   overflow: hidden;
-}
+} */
 
 .todo-form {
   display: flex;
@@ -170,4 +190,220 @@ footer {
   margin-top: 2rem;
   text-align: center;
   color: #6b7280;
+}
+
+/* Navigation styles */
+nav {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+nav a {
+  padding: 0.5rem 1rem;
+  margin: 0 0.5rem;
+  color: #4c1d95;
+  text-decoration: none;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+nav a:hover {
+  background-color: #f3f4f6;
+}
+
+.active-link {
+  background-color: #e0e7ff;
+  font-weight: bold;
+}
+
+/* Notes app styles */
+.notes-container {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 0;
+}
+
+.notes-sidebar {
+  width: 30%;
+  background-color: #f9fafb;
+  border-right: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.notes-header {
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.notes-header h2 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #374151;
+}
+
+.add-note-btn {
+  background-color: #4c1d95;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  transition: background-color 0.3s;
+}
+
+.add-note-btn:hover {
+  background-color: #6d28d9;
+}
+
+.notes-list {
+  overflow-y: auto;
+  flex-grow: 1;
+}
+
+.note-item {
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  text-align: left;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.note-item:hover {
+  background-color: #f3f4f6;
+}
+
+.note-item.active {
+  background-color: #e0e7ff;
+  border-left: 3px solid #4c1d95;
+}
+
+.note-item-content {
+  flex-grow: 1;
+  overflow: hidden;
+}
+
+.note-title {
+  margin: 0;
+  font-size: 1rem;
+  color: #1f2937;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.note-preview {
+  margin: 0.3rem 0 0.5rem;
+  font-size: 0.8rem;
+  color: #6b7280;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.note-date {
+  font-size: 0.7rem;
+  color: #9ca3af;
+}
+
+.delete-note-btn {
+  color: #ef4444;
+  background: none;
+  border: none;
+  padding: 0.3rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.delete-note-btn:hover {
+  opacity: 1;
+}
+
+.note-editor {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.empty-editor {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+  font-style: italic;
+  background-color: #f9fafb;
+}
+
+.editor-header {
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.note-title-input {
+  width: 100%;
+  padding: 0.5rem;
+  font-size: 1.2rem;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+}
+
+.editor-content {
+  flex-grow: 1;
+  overflow: hidden;
+}
+
+.note-content-input {
+  width: 100%;
+  height: 100%;
+  padding: 1rem;
+  font-size: 1rem;
+  line-height: 1.6;
+  border: none;
+  resize: none;
+  outline: none;
+}
+
+.editor-footer {
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  color: #9ca3af;
+  text-align: right;
+  border-top: 1px solid #e5e7eb;
+}
+
+.no-notes {
+  padding: 1rem;
+  text-align: center;
+  color: #9ca3af;
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .notes-container {
+    flex-direction: column;
+    height: 100vh;
+  }
+
+  .notes-sidebar {
+    width: 100%;
+    max-height: 300px;
+  }
 }
