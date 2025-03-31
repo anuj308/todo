@@ -1,4 +1,6 @@
 import { createContext, useState, useContext, useEffect } from 'react';
+import { getAuthHeader, getToken } from '../services/authService';
+import { useAuth } from './AuthContext';
 
 const NotesContext = createContext();
 
@@ -36,16 +38,21 @@ export function NotesProvider({ children }) {
   const [activeNote, setActiveNote] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const { user } = useAuth();
 
   const API_URL = getBaseUrl();
 
   // Fetch all notes from API
   const fetchNotes = async () => {
+    if (!user) return;
+    
     setLoading(true);
     setError(null);
     try {
       console.log('Fetching notes from:', `${API_URL}/notes`);
-      const response = await fetch(`${API_URL}/notes`);
+      const response = await fetch(`${API_URL}/notes`, {
+        headers: getAuthHeader()
+      });
       
       if (!response.ok) {
         console.error('Failed to fetch notes, status:', response.status);
@@ -76,10 +83,14 @@ export function NotesProvider({ children }) {
 
   // Search notes
   const searchNotes = async (query) => {
+    if (!user) return [];
+    
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${API_URL}/notes/search?q=${encodeURIComponent(query)}`);
+      const response = await fetch(`${API_URL}/notes/search?q=${encodeURIComponent(query)}`, {
+        headers: getAuthHeader()
+      });
       if (!response.ok) {
         throw new Error('Failed to search notes');
       }
@@ -98,10 +109,14 @@ export function NotesProvider({ children }) {
 
   // Fetch a specific note by ID
   const fetchNoteById = async (id) => {
+    if (!user) return null;
+    
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${API_URL}/notes/${id}`);
+      const response = await fetch(`${API_URL}/notes/${id}`, {
+        headers: getAuthHeader()
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch note');
       }
@@ -116,13 +131,17 @@ export function NotesProvider({ children }) {
     }
   };
 
-  // Load all notes when component mounts
+  // Load all notes when component mounts and user is authenticated
   useEffect(() => {
-    fetchNotes();
-  }, []);
+    if (user) {
+      fetchNotes();
+    }
+  }, [user]);
 
   // Add a new note
   const addNote = async (title) => {
+    if (!user) return null;
+    
     setLoading(true);
     setError(null);
     try {
@@ -140,6 +159,7 @@ export function NotesProvider({ children }) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...getAuthHeader()
         },
         body: JSON.stringify(newNote),
       });
@@ -179,6 +199,8 @@ export function NotesProvider({ children }) {
 
   // Update an existing note
   const updateNote = async (id, updates) => {
+    if (!user) return null;
+    
     setLoading(true);
     setError(null);
     try {
@@ -207,6 +229,7 @@ export function NotesProvider({ children }) {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
+            ...getAuthHeader()
           },
           body: JSON.stringify(dataWithoutId),
         });
@@ -235,6 +258,7 @@ export function NotesProvider({ children }) {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
+            ...getAuthHeader()
           },
           body: JSON.stringify(updatedData),
         });
@@ -269,6 +293,8 @@ export function NotesProvider({ children }) {
 
   // Delete a note
   const deleteNote = async (id) => {
+    if (!user) return false;
+    
     setLoading(true);
     setError(null);
     try {
@@ -283,6 +309,7 @@ export function NotesProvider({ children }) {
       
       const response = await fetch(`${API_URL}/notes/${noteId}`, {
         method: 'DELETE',
+        headers: getAuthHeader()
       });
       
       if (!response.ok) {
@@ -310,6 +337,8 @@ export function NotesProvider({ children }) {
 
   // Select a note to view/edit
   const selectNote = async (id) => {
+    if (!user) return;
+    
     // Don't attempt to fetch if id is undefined or null
     if (!id) {
       console.warn("Attempted to select a note with undefined or null ID");

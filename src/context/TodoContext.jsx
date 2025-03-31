@@ -1,6 +1,7 @@
 // client/src/context/TodoContext.jsx
-import { createContext, useState, useEffect } from 'react';
+import { createContext, useState, useEffect, useContext } from 'react';
 import axios from 'axios';
+import { useAuth } from './AuthContext';
 
 export const TodoContext = createContext();
 
@@ -8,27 +9,42 @@ export const TodoContext = createContext();
 const getBaseUrl = () => {
   return import.meta.env.VITE_API_BASE_URL || '/api';
 };
-// const getBaseUrl = () => {
-//   return '/api';
-// };
 
 export const TodoProvider = ({ children }) => {
   const [todos, setTodos] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { user } = useAuth();
   
   // Get API base URL
   const API_URL = getBaseUrl();
 
+  // Configure axios with authentication headers
+  const getAuthConfig = () => {
+    // Only add the auth header if user exists and has a token
+    if (user && user.token) {
+      return {
+        headers: {
+          Authorization: `Bearer ${user.token}`
+        }
+      };
+    }
+    return {};
+  };
+
   useEffect(() => {
-    fetchTodos();
-  }, []);
+    if (user) {
+      fetchTodos();
+    }
+  }, [user]);
 
   // Fetch all todos
   const fetchTodos = async () => {
+    if (!user) return;
+    
     setIsLoading(true);
     try {
-      const response = await axios.get(`${API_URL}/todos`);
+      const response = await axios.get(`${API_URL}/todos`, getAuthConfig());
       setTodos(response.data);
       setError(null);
     } catch (error) {
@@ -42,7 +58,7 @@ export const TodoProvider = ({ children }) => {
   // Add a new todo
   const addTodo = async (text) => {
     try {
-      const response = await axios.post(`${API_URL}/todos`, { text });
+      const response = await axios.post(`${API_URL}/todos`, { text }, getAuthConfig());
       setTodos([response.data, ...todos]);
       return response.data;
     } catch (error) {
@@ -54,7 +70,7 @@ export const TodoProvider = ({ children }) => {
   // Toggle todo completion status
   const toggleTodo = async (id, completed) => {
     try {
-      const response = await axios.put(`${API_URL}/todos/${id}`, { completed });
+      const response = await axios.put(`${API_URL}/todos/${id}`, { completed }, getAuthConfig());
       setTodos(
         todos.map((todo) =>
           todo._id === id ? { ...todo, completed: response.data.completed } : todo
@@ -70,7 +86,7 @@ export const TodoProvider = ({ children }) => {
   // Delete a todo
   const deleteTodo = async (id) => {
     try {
-      await axios.delete(`${API_URL}/todos/${id}`);
+      await axios.delete(`${API_URL}/todos/${id}`, getAuthConfig());
       setTodos(todos.filter((todo) => todo._id !== id));
     } catch (error) {
       setError('Failed to delete todo');
