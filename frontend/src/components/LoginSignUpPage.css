@@ -8,13 +8,14 @@
 }
 
 .login-signup-card {
-  background-color: white;
+  background-color: var(--card-bg);
   border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 10px 25px var(--card-shadow);
   width: 100%;
   max-width: 420px;
   padding: 40px;
   text-align: center;
+  border: 1px solid var(--border-primary);
 }
 
 .login-signup-logo {
@@ -26,12 +27,12 @@
 
 .login-signup-title {
   font-size: 1.8rem;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 8px;
 }
 
 .login-signup-subtitle {
-  color: #666;
+  color: var(--text-secondary);
   margin-bottom: 30px;
 }
 
@@ -44,7 +45,7 @@
   display: block;
   margin-bottom: 6px;
   font-weight: 500;
-  color: #555;
+  color: var(--text-primary);
 }
 
 .form-input {
