@@ -9,6 +9,7 @@ import RedirectIfAuthenticated from './components/RedirectIfAuthenticated';
 import Navbar from './components/Navbar';
 import { AuthProvider } from './context/AuthContext';
 import { TodoProvider } from './context/TodoContext';
+import { FoldersProvider } from './context/FoldersContext';
 import { ThemeProvider } from './context/ThemeContext';
 import './App.css';
 
@@ -19,42 +20,44 @@ const App = () => {
     return (
         <ThemeProvider>
             <AuthProvider>
-                <div className="app-container">
-                    {!isLoginPage && <Navbar />}
-                    <div className="content-container">
-                        <Routes>
-                            <Route 
-                                path="/" 
-                                element={
-                                    <RedirectIfAuthenticated>
-                                        <LoginSignUpPage />
-                                    </RedirectIfAuthenticated>
-                                } 
-                            />
-                            <Route 
-                                path="/notes" 
-                                element={
-                                    <ProtectedRoute>
-                                        <NotesPage />
-                                    </ProtectedRoute>
-                                } 
-                            />
-                            <Route 
-                                path="/todo" 
-                                element={
-                                    <ProtectedRoute>
-                                        <TodoProvider>
-                                            <TodoForm />
-                                            <TodoList />
-                                        </TodoProvider>
-                                    </ProtectedRoute>
-                                } 
-                            />
-                            {/* Catch-all route to redirect undefined routes to home page */}
-                            <Route path="*" element={<Navigate to="/" replace />} />
-                        </Routes>
+                <FoldersProvider>
+                    <div className="app-container">
+                        {!isLoginPage && <Navbar />}
+                        <div className="content-container">
+                            <Routes>
+                                <Route 
+                                    path="/" 
+                                    element={
+                                        <RedirectIfAuthenticated>
+                                            <LoginSignUpPage />
+                                        </RedirectIfAuthenticated>
+                                    } 
+                                />
+                                <Route 
+                                    path="/notes" 
+                                    element={
+                                        <ProtectedRoute>
+                                            <NotesPage />
+                                        </ProtectedRoute>
+                                    } 
+                                />
+                                <Route 
+                                    path="/todo" 
+                                    element={
+                                        <ProtectedRoute>
+                                            <TodoProvider>
+                                                <TodoForm />
+                                                <TodoList />
+                                            </TodoProvider>
+                                        </ProtectedRoute>
+                                    } 
+                                />
+                                {/* Catch-all route to redirect undefined routes to home page */}
+                                <Route path="*" element={<Navigate to="/" replace />} />
+                            </Routes>
+                        </div>
                     </div>
-                </div>
+                </FoldersProvider>
             </AuthProvider>
         </ThemeProvider>
     );

@@ -138,7 +138,7 @@ export function NotesProvider({ children }) {
   }, [user]);
 
   // Add a new note
-  const addNote = async (title) => {
+  const addNote = async (title, folderId = null) => {
     if (!user) return null;
     
     setLoading(true);
@@ -147,6 +147,7 @@ export function NotesProvider({ children }) {
       const newNote = {
         title,
         content: '',
+        folderId,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };

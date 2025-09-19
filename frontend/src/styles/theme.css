@@ -36,6 +36,36 @@
   --navbar-text: #ffffff;
   --navbar-hover: #3498db;
   --navbar-border: #ffffff;
+  
+  /* Accent Colors */
+  --accent-color: #007bff;
+  --accent-hover: #0056b3;
+  --accent-light: #e3f2fd;
+  --accent-color-light: #e7f3ff;
+  --accent-color-alpha: rgba(0, 123, 255, 0.1);
+  
+  /* Status Colors */
+  --success-color: #28a745;
+  --warning-color: #ffc107;
+  --error-color: #dc3545;
+  --info-color: #17a2b8;
+  
+  /* Additional Text Colors */
+  --text-tertiary: #868e96;
+  
+  /* Additional Border Colors */
+  --border-color: #dee2e6;
+  
+  /* Sidebar and Surface Colors */
+  --sidebar-bg: #f8f9fa;
+  --surface: #ffffff;
+  --surface-secondary: #f1f3f4;
+  --hover-bg: #f8f9fa;
+  
+  /* Button States */
+  --button-secondary-bg: #e9ecef;
+  --button-secondary-hover: #d4edda;
+  --button-disabled: #dee2e6;
 }
 
 /* Dark Theme */
@@ -74,6 +104,36 @@
   --navbar-text: #e0e0e0;
   --navbar-hover: #64b5f6;
   --navbar-border: #e0e0e0;
+  
+  /* Accent Colors */
+  --accent-color: #1976d2;
+  --accent-hover: #1565c0;
+  --accent-light: #1e3a8a;
+  --accent-color-light: #1a2332;
+  --accent-color-alpha: rgba(25, 118, 210, 0.15);
+  
+  /* Status Colors */
+  --success-color: #4caf50;
+  --warning-color: #ff9800;
+  --error-color: #f44336;
+  --info-color: #2196f3;
+  
+  /* Additional Text Colors */
+  --text-tertiary: #616161;
+  
+  /* Additional Border Colors */
+  --border-color: #404040;
+  
+  /* Sidebar and Surface Colors */
+  --sidebar-bg: #1e1e1e;
+  --surface: #2d2d2d;
+  --surface-secondary: #3a3a3a;
+  --hover-bg: #2d2d2d;
+  
+  /* Button States */
+  --button-secondary-bg: #424242;
+  --button-secondary-hover: #4f4f4f;
+  --button-disabled: #616161;
 }
 
 /* Global Styles */

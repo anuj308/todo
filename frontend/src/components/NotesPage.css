@@ -1,0 +1,71 @@
+/* Notes Page Layout */
+.notes-page {
+  display: flex;
+  height: calc(100vh - 60px); /* Subtract navbar height */
+  background: var(--bg-primary);
+  overflow: hidden;
+}
+
+.notes-main-content {
+  display: flex;
+  flex: 1;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Update notes container for the new layout */
+.notes-container {
+  display: flex;
+  flex: 1;
+  height: 100%;
+  background: var(--bg-primary);
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .notes-main-content {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 768px) {
+  .notes-page {
+    flex-direction: column;
+  }
+  
+  .notes-main-content {
+    flex-direction: column;
+    height: calc(100vh - 60px);
+  }
+}
+
+/* Industry Standard Layout Improvements */
+.notes-page {
+  position: relative;
+}
+
+/* Smooth transitions for layout changes */
+.notes-main-content,
+.notes-container {
+  transition: all 0.3s ease;
+}
+
+/* Focus states for accessibility */
+.notes-page:focus-within {
+  outline: none;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .notes-page {
+    border: 2px solid var(--text-primary);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .notes-main-content,
+  .notes-container {
+    transition: none;
+  }
+}

@@ -1,14 +1,28 @@
 import Note from '../models/noteModel.js';
+import Folder from '../models/folderModel.js';
 
 // Get all notes for a user
 export const getNotes = async (req, res) => {
   try {
     // Get userId from authenticated user (provided by protect middleware)
     const userId = req.user.id;
+    const { folderId, includeUnfoldered = false } = req.query;
     
-    const notes = await Note.find({ userId })
-      .sort({ updatedAt: -1 })
-      .select('id title content createdAt updatedAt');
+    let query = { userId };
+    
+    if (folderId) {
+      query.folderId = folderId;
+    } else if (includeUnfoldered === 'true') {
+      query.$or = [
+        { folderId: null },
+        { folderId: { $exists: false } }
+      ];
+    }
+    
+    const notes = await Note.find(query)
+      .populate('folder', 'name color icon')
+      .sort({ isPinned: -1, updatedAt: -1 })
+      .select('id title content createdAt updatedAt folderId isPinned order tags');
     
     res.status(200).json(notes);
   } catch (error) {
@@ -38,7 +52,7 @@ export const getNoteById = async (req, res) => {
 // Create a new note
 export const createNote = async (req, res) => {
   try {
-    const { title, content = '' } = req.body;
+    const { title, content = '', folderId, tags = [] } = req.body;
     
     // Get userId from authenticated user (provided by protect middleware)
     const userId = req.user.id;
@@ -47,13 +61,26 @@ export const createNote = async (req, res) => {
       return res.status(400).json({ message: 'Title is required' });
     }
     
+    // If folderId is provided, verify it belongs to the user
+    if (folderId) {
+      const folder = await Folder.findOne({ _id: folderId, userId });
+      if (!folder) {
+        return res.status(400).json({ message: 'Invalid folder' });
+      }
+    }
+    
     const newNote = await Note.create({
       title,
       content,
+      folderId: folderId || null,
+      tags,
       userId,
       createdAt: new Date(),
       updatedAt: new Date()
     });
+    
+    // Populate folder information before sending response
+    await newNote.populate('folder', 'name color icon');
     
     res.status(201).json(newNote);
   } catch (error) {

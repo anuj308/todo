@@ -6,6 +6,7 @@ import connectDB from './config/db.js';
 import todoRoutes from './routes/todoRoutes.js';
 import noteRoutes from './routes/noteRoutes.js';
 import userRoutes from './routes/userRoutes.js'; // Import user routes
+import folderRoutes from './routes/folderRoutes.js'; // Import folder routes
 
 console.log('Server starting up - this is a test log'); // Test log
 
@@ -28,6 +29,7 @@ app.use(cookieParser()); // Add cookie parser middleware
 app.use('/api/todos', todoRoutes);
 app.use('/api/notes', noteRoutes);
 app.use('/api/users', userRoutes); // Add user routes
+app.use('/api/folders', folderRoutes); // Add folder routes
 
 // 404 handler for API routes
 app.all('/api/*', (req, res) => {

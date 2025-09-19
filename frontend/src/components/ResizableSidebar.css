@@ -1,0 +1,186 @@
+.resizable-sidebar {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--border-color);
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 60px;
+  max-width: 600px;
+  height: 100%;
+  overflow: hidden;
+}
+
+.resizable-sidebar.collapsed {
+  width: 60px !important;
+}
+
+.resizable-sidebar.resizing {
+  transition: none;
+  user-select: none;
+}
+
+/* Toggle Button */
+.sidebar-toggle-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  background: var(--button-secondary-bg);
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-toggle-btn:hover {
+  background: var(--button-secondary-hover);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.sidebar-toggle-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.toggle-icon {
+  transition: transform 0.3s ease;
+}
+
+.toggle-icon.collapsed {
+  transform: scaleX(-1);
+}
+
+/* Sidebar Content */
+.sidebar-content {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding-top: 56px; /* Account for toggle button */
+}
+
+.resizable-sidebar.collapsed .sidebar-content {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Resize Handle */
+.sidebar-resizer {
+  position: absolute;
+  top: 0;
+  right: -3px;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 5;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar-resizer:hover .resizer-handle {
+  opacity: 1;
+  background: var(--accent-color);
+}
+
+.resizer-handle {
+  width: 2px;
+  height: 40px;
+  background: var(--border-color);
+  border-radius: 1px;
+  opacity: 0;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.resizer-dots {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.resizer-dots .dot {
+  width: 2px;
+  height: 2px;
+  background: var(--text-tertiary);
+  border-radius: 50%;
+}
+
+.sidebar-resizer:hover .resizer-dots .dot {
+  background: white;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .resizable-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 1000;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .resizable-sidebar.collapsed {
+    transform: translateX(-100%);
+    width: 280px !important;
+  }
+
+  .sidebar-toggle-btn {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 1001;
+  }
+
+  .sidebar-resizer {
+    display: none;
+  }
+}
+
+/* Dark Mode Adjustments */
+[data-theme="dark"] .sidebar-toggle-btn {
+  box-shadow: 0 1px 3px rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .sidebar-toggle-btn:hover {
+  box-shadow: 0 2px 6px rgba(255, 255, 255, 0.15);
+}
+
+[data-theme="dark"] .resizer-handle {
+  background: var(--border-color);
+}
+
+[data-theme="dark"] .sidebar-resizer:hover .resizer-handle {
+  background: var(--accent-color);
+}
+
+/* Animation for collapse/expand */
+.resizable-sidebar * {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.resizable-sidebar.collapsed * {
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+.resizable-sidebar.collapsed .sidebar-toggle-btn {
+  opacity: 1;
+  transform: none;
+}

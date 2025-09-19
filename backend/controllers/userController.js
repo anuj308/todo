@@ -1,4 +1,5 @@
 import User from '../models/userModel.js';
+import Folder from '../models/folderModel.js';
 import jwt from 'jsonwebtoken';
 
 // Generate JWT Token and set as cookie
@@ -48,6 +49,14 @@ export const registerUser = async (req, res) => {
     });
 
     if (user) {
+      // Create default folder for the new user
+      try {
+        await Folder.createDefaultFolder(user._id.toString());
+      } catch (folderError) {
+        console.error('Error creating default folder:', folderError);
+        // Don't fail user registration if folder creation fails
+      }
+
       generateTokenAndSetCookie(res, user._id);
       
       res.status(201).json({
