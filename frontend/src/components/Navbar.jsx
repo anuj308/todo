@@ -8,10 +8,17 @@ const Navbar = () => {
   const { user, setUser } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout();
-    setUser(null);
-    navigate('/');
+  const handleLogout = async () => {
+    try {
+      await logout();
+      setUser(null);
+      navigate('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Even if server logout fails, clear local state
+      setUser(null);
+      navigate('/');
+    }
   };
 
   if (!user) return null;

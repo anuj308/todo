@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { getCurrentUser } from '../services/authService';
+import { getProfile } from '../services/authService';
 
 // Create context
 const AuthContext = createContext(null);
@@ -14,12 +14,20 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is logged in
-    const user = getCurrentUser();
-    if (user) {
-      setUser(user);
-    }
-    setLoading(false);
+    // Check if user is authenticated by trying to get profile
+    const checkAuth = async () => {
+      try {
+        const userData = await getProfile();
+        setUser(userData);
+      } catch (error) {
+        // If token is invalid or missing, user will remain null
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
   }, []);
 
   return (

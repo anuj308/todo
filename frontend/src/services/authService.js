@@ -8,6 +8,7 @@ export const register = async (userData) => {
     headers: {
       'Content-Type': 'application/json',
     },
+    credentials: 'include', // Include cookies in request
     body: JSON.stringify(userData),
   });
 
@@ -17,11 +18,7 @@ export const register = async (userData) => {
     throw new Error(data.message || 'Something went wrong');
   }
 
-  // Save user to localStorage
-  if (data.token) {
-    localStorage.setItem('user', JSON.stringify(data));
-  }
-
+  // No need to save token to localStorage - it's in httpOnly cookie
   return data;
 };
 
@@ -32,6 +29,7 @@ export const login = async (userData) => {
     headers: {
       'Content-Type': 'application/json',
     },
+    credentials: 'include', // Include cookies in request
     body: JSON.stringify(userData),
   });
 
@@ -41,73 +39,50 @@ export const login = async (userData) => {
     throw new Error(data.message || 'Invalid credentials');
   }
 
-  // Save user to localStorage
-  if (data.token) {
-    localStorage.setItem('user', JSON.stringify(data));
-  }
-
+  // No need to save token to localStorage - it's in httpOnly cookie
   return data;
 };
 
 // Logout user
-export const logout = () => {
-  localStorage.removeItem('user');
-};
+export const logout = async () => {
+  try {
+    const response = await fetch(`${API_URL}/logout`, {
+      method: 'POST',
+      credentials: 'include', // Include cookies in request
+    });
 
-// Get current user
-export const getCurrentUser = () => {
-  return JSON.parse(localStorage.getItem('user'));
-};
+    if (!response.ok) {
+      throw new Error('Logout failed');
+    }
 
-// Get auth token
-export const getToken = () => {
-  const user = getCurrentUser();
-  return user?.token;
-};
-
-// Get auth header
-export const getAuthHeader = () => {
-  const token = getToken();
-  if (token) {
-    return { 'Authorization': `Bearer ${token}` };
-  } else {
-    return {};
+    return await response.json();
+  } catch (error) {
+    console.error('Logout error:', error);
+    // Even if the server request fails, we should still clear any local state
+    throw error;
   }
 };
 
 // Create authenticated fetch function
 export const authFetch = async (url, options = {}) => {
-  // Get the token
-  const token = getToken();
-  
-  if (!token) {
-    throw new Error('Not authenticated');
-  }
-
-  // Merge headers with auth header
-  const headers = {
-    ...options.headers,
-    'Authorization': `Bearer ${token}`,
-  };
-
-  // Make the request
+  // Make the request with credentials included for cookies
   const response = await fetch(url, {
     ...options,
-    headers,
+    credentials: 'include', // Include cookies
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+      // No Authorization header needed anymore
+    },
   });
 
   // Handle response
-  const data = await response.json();
-  
   if (!response.ok) {
-    // If unauthorized, log the user out
-    if (response.status === 401) {
-      logout();
-    }
+    const data = await response.json();
     throw new Error(data.message || 'API request failed');
   }
 
-  return data;
+  return await response.json();
 };
 
 // Get user profile

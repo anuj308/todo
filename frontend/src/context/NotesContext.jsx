@@ -1,5 +1,4 @@
 import { createContext, useState, useContext, useEffect } from 'react';
-import { getAuthHeader, getToken } from '../services/authService';
 import { useAuth } from './AuthContext';
 
 const NotesContext = createContext();
@@ -51,7 +50,7 @@ export function NotesProvider({ children }) {
     try {
       console.log('Fetching notes from:', `${API_URL}/notes`);
       const response = await fetch(`${API_URL}/notes`, {
-        headers: getAuthHeader()
+        credentials: 'include'
       });
       
       if (!response.ok) {
@@ -89,7 +88,7 @@ export function NotesProvider({ children }) {
     setError(null);
     try {
       const response = await fetch(`${API_URL}/notes/search?q=${encodeURIComponent(query)}`, {
-        headers: getAuthHeader()
+        credentials: 'include'
       });
       if (!response.ok) {
         throw new Error('Failed to search notes');
@@ -115,7 +114,7 @@ export function NotesProvider({ children }) {
     setError(null);
     try {
       const response = await fetch(`${API_URL}/notes/${id}`, {
-        headers: getAuthHeader()
+        credentials: 'include'
       });
       if (!response.ok) {
         throw new Error('Failed to fetch note');
@@ -158,9 +157,9 @@ export function NotesProvider({ children }) {
       const response = await fetch(`${API_URL}/notes`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          ...getAuthHeader()
+          'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify(newNote),
       });
       
@@ -228,9 +227,9 @@ export function NotesProvider({ children }) {
         const response = await fetch(`${API_URL}/notes/${noteId}`, {
           method: 'PUT',
           headers: {
-            'Content-Type': 'application/json',
-            ...getAuthHeader()
+            'Content-Type': 'application/json'
           },
+          credentials: 'include',
           body: JSON.stringify(dataWithoutId),
         });
         
@@ -257,9 +256,9 @@ export function NotesProvider({ children }) {
         const response = await fetch(`${API_URL}/notes/${id}`, {
           method: 'PUT',
           headers: {
-            'Content-Type': 'application/json',
-            ...getAuthHeader()
+            'Content-Type': 'application/json'
           },
+          credentials: 'include',
           body: JSON.stringify(updatedData),
         });
         
@@ -309,7 +308,7 @@ export function NotesProvider({ children }) {
       
       const response = await fetch(`${API_URL}/notes/${noteId}`, {
         method: 'DELETE',
-        headers: getAuthHeader()
+        credentials: 'include'
       });
       
       if (!response.ok) {

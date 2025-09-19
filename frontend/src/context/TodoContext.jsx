@@ -19,17 +19,11 @@ export const TodoProvider = ({ children }) => {
   // Get API base URL
   const API_URL = getBaseUrl();
 
-  // Configure axios with authentication headers
+  // Configure axios with credentials for cookies
   const getAuthConfig = () => {
-    // Only add the auth header if user exists and has a token
-    if (user && user.token) {
-      return {
-        headers: {
-          Authorization: `Bearer ${user.token}`
-        }
-      };
-    }
-    return {};
+    return {
+      withCredentials: true // Enable sending cookies with requests
+    };
   };
 
   useEffect(() => {

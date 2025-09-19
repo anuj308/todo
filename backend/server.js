@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import connectDB from './config/db.js';
 import todoRoutes from './routes/todoRoutes.js';
@@ -15,11 +16,13 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: 'http://localhost:5173/' && 'https://todo-nine-jade.vercel.app/', // Replace with your frontend's Render URL
+  origin: ['http://localhost:5173', 'https://todo-nine-jade.vercel.app'], // Allow both origins
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true // Enable credentials for cookies
 }));
 app.use(express.json());
+app.use(cookieParser()); // Add cookie parser middleware
 
 // Routes
 app.use('/api/todos', todoRoutes);
