@@ -83,21 +83,7 @@ const ResizableSidebar = ({ children, className = '', type = 'default' }) => {
         title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
       >
-        <svg
-          className={`toggle-icon ${isCollapsed ? 'collapsed' : ''}`}
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M21 3H3C1.89 3 1 3.89 1 5V19C1 20.11 1.89 21 3 21H21C22.11 21 23 20.11 23 19V5C23 3.89 22.11 3 21 3Z" />
-          <path d="M10 4V20" />
-          <path d="M4 7L7 10L4 13" />
-        </svg>
+        {type === 'folder' ? '📁' : '📝'}
       </button>
 
       {/* Sidebar Content */}
