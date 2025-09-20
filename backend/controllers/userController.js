@@ -12,7 +12,7 @@ const generateTokenAndSetCookie = (res, id) => {
   res.cookie('token', token, {
     httpOnly: true, // Prevent XSS attacks
     secure: process.env.NODE_ENV === 'production', // HTTPS only in production
-    sameSite: 'strict', // Prevent CSRF attacks
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Allow cross-origin in production
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
   });
 
