@@ -34,6 +34,7 @@ const Navbar = () => {
         <div className="nav-links">
           <Link to="/todo" className="nav-link">Todos</Link>
           <Link to="/notes" className="nav-link">Notes</Link>
+          <Link to="/calendar" className="nav-link">Calendar</Link>
         </div>
         <div className="nav-auth">
           <button 
