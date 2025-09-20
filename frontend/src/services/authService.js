@@ -1,5 +1,5 @@
 // API service for authentication
-const API_URL = '/api/users';
+const API_URL = `${import.meta.env.VITE_API_BASE_URL}/api/users`;
 
 // Register user
 export const register = async (userData) => {
