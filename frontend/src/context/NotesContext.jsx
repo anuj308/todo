@@ -1,4 +1,4 @@
-import { createContext, useState, useContext, useEffect } from 'react';
+import { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 
 const NotesContext = createContext();
@@ -33,61 +33,63 @@ const normalizeNotes = (notes) => {
 };
 
 export function NotesProvider({ children }) {
-  const [notes, setNotes] = useState([]);
-  const [activeNote, setActiveNote] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [notesList, setNotesList] = useState([]); // Only titles and metadata
+  const [activeNote, setActiveNote] = useState(null); // Full note content
+  const [listLoading, setListLoading] = useState(false); // For notes list operations
+  const [noteLoading, setNoteLoading] = useState(false); // For individual note loading
   const [error, setError] = useState(null);
   const { user } = useAuth();
 
   const API_URL = getBaseUrl();
 
-  // Fetch all notes from API
-  const fetchNotes = async () => {
+  // Fetch notes list (optimized - titles only)
+  const fetchNotesList = async () => {
     if (!user) return;
     
-    setLoading(true);
+    setListLoading(true);
     setError(null);
     try {
-      console.log('Fetching notes from:', `${API_URL}/notes`);
-      const response = await fetch(`${API_URL}/notes`, {
+      console.log('Fetching notes list from:', `${API_URL}/notes/list`);
+      const response = await fetch(`${API_URL}/notes/list`, {
         credentials: 'include'
       });
       
       if (!response.ok) {
-        console.error('Failed to fetch notes, status:', response.status);
+        console.error('Failed to fetch notes list, status:', response.status);
         throw new Error(`Failed to fetch notes: ${response.status}`);
       }
       
       const data = await response.json();
-      console.log('Notes fetched successfully (raw):', data);
+      console.log('Notes list fetched successfully:', data);
       
       // Normalize the notes to ensure they have id property
       const normalizedNotes = normalizeNotes(data);
-      console.log('Normalized notes:', normalizedNotes);
+      console.log('Normalized notes list:', normalizedNotes);
       
-      setNotes(normalizedNotes);
-      
-      // If we have notes but no active note, set the first one as active
-      if (normalizedNotes.length > 0 && !activeNote) {
-        setActiveNote(normalizedNotes[0]);
-      }
+      setNotesList(normalizedNotes);
       
     } catch (err) {
-      console.error('Error fetching notes:', err);
+      console.error('Error fetching notes list:', err);
       setError(err.message);
     } finally {
-      setLoading(false);
+      setListLoading(false);
     }
+  };
+
+  // Manual refresh function for when needed
+  const refreshNotesList = async () => {
+    console.log('Manual refresh of notes list requested');
+    await fetchNotesList();
   };
 
   // Search notes
   const searchNotes = async (query) => {
     if (!user) return [];
     
-    setLoading(true);
+    setListLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${API_URL}/notes/search?q=${encodeURIComponent(query)}`, {
+      const response = await fetch(`${API_URL}/notes/search?query=${encodeURIComponent(query)}`, {
         credentials: 'include'
       });
       if (!response.ok) {
@@ -95,14 +97,14 @@ export function NotesProvider({ children }) {
       }
       const data = await response.json();
       const normalizedNotes = normalizeNotes(data);
-      setNotes(normalizedNotes);
+      setNotesList(normalizedNotes); // Update list with search results
       return normalizedNotes;
     } catch (err) {
       console.error('Error searching notes:', err);
       setError(err.message);
       return [];
     } finally {
-      setLoading(false);
+      setListLoading(false);
     }
   };
 
@@ -110,7 +112,7 @@ export function NotesProvider({ children }) {
   const fetchNoteById = async (id) => {
     if (!user) return null;
     
-    setLoading(true);
+    setNoteLoading(true);
     setError(null);
     try {
       const response = await fetch(`${API_URL}/notes/${id}`, {
@@ -126,14 +128,15 @@ export function NotesProvider({ children }) {
       setError(err.message);
       return null;
     } finally {
-      setLoading(false);
+      setNoteLoading(false);
     }
   };
 
-  // Load all notes when component mounts and user is authenticated
+  // Load notes list when component mounts and user is authenticated
   useEffect(() => {
-    if (user) {
-      fetchNotes();
+    if (user && notesList.length === 0) {
+      // Only fetch if we don't already have notes loaded
+      fetchNotesList();
     }
   }, [user]);
 
@@ -141,7 +144,7 @@ export function NotesProvider({ children }) {
   const addNote = async (title, folderId = null) => {
     if (!user) return null;
     
-    setLoading(true);
+    setListLoading(true);
     setError(null);
     try {
       const newNote = {
@@ -181,8 +184,8 @@ export function NotesProvider({ children }) {
         throw new Error('Created note is missing an ID');
       }
       
-      // Update notes state with the new note from backend
-      setNotes(prevNotes => [normalizedNote, ...prevNotes]);
+      // Update notes list with the new note from backend  
+      setNotesList(prevNotes => [normalizedNote, ...prevNotes]);
       
       // Set the newly created note as active
       setActiveNote(normalizedNote);
@@ -193,113 +196,118 @@ export function NotesProvider({ children }) {
       setError(err.message);
       return null;
     } finally {
-      setLoading(false);
+      setListLoading(false);
     }
   };
 
-  // Update an existing note
+  // Update an existing note (SUPER OPTIMIZED - only update list if metadata changes)
   const updateNote = async (id, updates) => {
     if (!user) return null;
     
-    setLoading(true);
     setError(null);
     try {
-      // First find the current note to merge updates properly
-      const currentNote = notes.find(note => note.id === id);
+      // First find the current note in the list
+      const currentNoteInList = notesList.find(note => note.id === id);
       
-      if (!currentNote) {
+      if (!currentNoteInList) {
         throw new Error('Note not found');
       }
       
       // Prepare the update with merged data
       // Use _id for API call if it exists
-      const noteId = currentNote._id || id;
+      const noteId = currentNoteInList._id || id;
       const updatedData = {
-        ...currentNote,
         ...updates,
         updatedAt: new Date().toISOString()
       };
       
-      // Remove id if _id exists to avoid duplicate IDs in the database
-      if (updatedData._id && updatedData.id) {
-        // Keep only _id for the API call
-        const { id, ...dataWithoutId } = updatedData;
-        
-        const response = await fetch(`${API_URL}/notes/${noteId}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          credentials: 'include',
-          body: JSON.stringify(dataWithoutId),
-        });
-        
-        if (!response.ok) {
-          throw new Error('Failed to update note');
-        }
-        
-        const updatedFromApi = await response.json();
-        const normalizedUpdatedNote = normalizeNote(updatedFromApi);
-        
-        // Update notes list
-        setNotes(prevNotes => 
-          prevNotes.map(note => note.id === id ? normalizedUpdatedNote : note)
-        );
-        
-        // Update active note if this is the one being edited
-        if (activeNote && activeNote.id === id) {
-          setActiveNote(normalizedUpdatedNote);
-        }
-        
-        return normalizedUpdatedNote;
-      } else {
-        // No _id present, proceed with id
-        const response = await fetch(`${API_URL}/notes/${id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          credentials: 'include',
-          body: JSON.stringify(updatedData),
-        });
-        
-        if (!response.ok) {
-          throw new Error('Failed to update note');
-        }
-        
-        const updatedFromApi = await response.json();
-        const normalizedUpdatedNote = normalizeNote(updatedFromApi);
-        
-        // Update notes list
-        setNotes(prevNotes => 
-          prevNotes.map(note => note.id === id ? normalizedUpdatedNote : note)
-        );
-        
-        // Update active note if this is the one being edited
-        if (activeNote && activeNote.id === id) {
-          setActiveNote(normalizedUpdatedNote);
-        }
-        
-        return normalizedUpdatedNote;
+      // Check if this update affects the sidebar (title, tags, isPinned, etc.)
+      const sidebarRelevantFields = ['title', 'tags', 'isPinned', 'order', 'folderId'];
+      const shouldUpdateList = sidebarRelevantFields.some(field => 
+        field in updates && updates[field] !== currentNoteInList[field]
+      );
+      
+      console.log('Update affects sidebar:', shouldUpdateList, { updates, currentNote: currentNoteInList });
+      
+      // Optimistic update - update active note if it's the one being updated
+      if (activeNote && activeNote.id === id) {
+        const optimisticNote = normalizeNote({ ...activeNote, ...updatedData });
+        setActiveNote(optimisticNote);
       }
+      
+      // Only update the note list if sidebar-relevant metadata changed
+      if (shouldUpdateList) {
+        console.log('Updating notes list with new metadata');
+        setNotesList(prevNotes => 
+          prevNotes.map(note => 
+            note.id === id 
+              ? { ...note, ...updatedData, content: undefined } // Remove content from list
+              : note
+          )
+        );
+      } else {
+        console.log('Skipping notes list update - only content changed');
+      }
+      
+      // Save to backend
+      const response = await fetch(`${API_URL}/notes/${noteId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify(updatedData),
+      });
+      
+      if (!response.ok) {
+        // Revert optimistic updates on error
+        if (activeNote && activeNote.id === id) {
+          setActiveNote(activeNote); // Keep current active note
+        }
+        if (shouldUpdateList) {
+          setNotesList(prevNotes => 
+            prevNotes.map(note => note.id === id ? currentNoteInList : note)
+          );
+        }
+        throw new Error(`Failed to update note: ${response.status}`);
+      }
+      
+      const updatedFromApi = await response.json();
+      const normalizedUpdatedNote = normalizeNote(updatedFromApi);
+      
+      // Update active note with server response if it's the current one
+      if (activeNote && activeNote.id === id) {
+        setActiveNote(normalizedUpdatedNote);
+      }
+      
+      // Only update notes list with server response if we updated it earlier
+      if (shouldUpdateList) {
+        console.log('Updating notes list with server response');
+        setNotesList(prevNotes => 
+          prevNotes.map(note => 
+            note.id === id 
+              ? { ...normalizedUpdatedNote, content: undefined }
+              : note
+          )
+        );
+      }
+      
+      return normalizedUpdatedNote;
     } catch (err) {
       console.error(`Error updating note ${id}:`, err);
       setError(err.message);
-      return null;
-    } finally {
-      setLoading(false);
+      throw err; // Re-throw so the caller can handle it
     }
   };
 
-  // Delete a note
+  // Delete a note (OPTIMIZED)
   const deleteNote = async (id) => {
     if (!user) return false;
     
-    setLoading(true);
     setError(null);
     try {
       // Find the note to get its _id if available
-      const noteToDelete = notes.find(note => note.id === id);
+      const noteToDelete = notesList.find(note => note.id === id);
       if (!noteToDelete) {
         throw new Error('Note not found');
       }
@@ -307,35 +315,51 @@ export function NotesProvider({ children }) {
       // Use _id for API call if available, otherwise use id
       const noteId = noteToDelete._id || id;
       
+      // Optimistic update - remove from list immediately
+      const updatedNotes = notesList.filter(note => note.id !== id);
+      setNotesList(updatedNotes);
+      
+      // Handle activeNote state updates
+      if (activeNote && activeNote.id === id) {
+        // Auto-select the next note if available
+        const nextNote = updatedNotes.length > 0 ? updatedNotes[0] : null;
+        if (nextNote) {
+          selectNote(nextNote.id);
+        } else {
+          setActiveNote(null);
+        }
+      }
+      
+      // Send delete request to backend
       const response = await fetch(`${API_URL}/notes/${noteId}`, {
         method: 'DELETE',
         credentials: 'include'
       });
       
       if (!response.ok) {
+        // Revert optimistic update on error
+        setNotesList(notesList);
+        if (activeNote && activeNote.id === id) {
+          setActiveNote(activeNote);
+        }
         throw new Error('Failed to delete note');
       }
       
-      // First update the notes state to remove the deleted note
-      const updatedNotes = notes.filter(note => note.id !== id);
-      setNotes(updatedNotes);
-      
-      // Then handle activeNote state updates
-      if (activeNote && activeNote.id === id) {
-        setActiveNote(updatedNotes.length > 0 ? updatedNotes[0] : null);
-      }
-      
+      console.log(`Note ${id} deleted successfully`);
       return true;
     } catch (err) {
       console.error(`Error deleting note ${id}:`, err);
       setError(err.message);
       return false;
-    } finally {
-      setLoading(false);
     }
   };
 
-  // Select a note to view/edit
+  // Clear active note (useful when changing folders)
+  const clearActiveNote = useCallback(() => {
+    setActiveNote(null);
+  }, []);
+
+  // Select a note to view/edit (loads full content only, no list update)
   const selectNote = async (id) => {
     if (!user) return;
     
@@ -345,10 +369,15 @@ export function NotesProvider({ children }) {
       return;
     }
     
+    // If already selected, don't reload
+    if (activeNote && activeNote.id === id) {
+      return;
+    }
+
     try {
-      // Find note in current state first to get _id if available
-      const noteInState = notes.find(note => note.id === id);
-      const noteId = noteInState?._id || id;
+      // Find note in current list to get _id if available
+      const noteInList = notesList.find(note => note.id === id);
+      const noteId = noteInList?._id || id;
       
       const note = await fetchNoteById(noteId);
       if (note) {
@@ -362,16 +391,21 @@ export function NotesProvider({ children }) {
 
   return (
     <NotesContext.Provider value={{ 
-      notes, 
+      notes: notesList, // For backward compatibility  
+      notesList, // Explicit list state
       activeNote,
-      loading,
+      listLoading, // Loading state for notes list operations
+      noteLoading, // Loading state for individual note content
+      loading: listLoading, // For backward compatibility
       error, 
-      fetchNotes,
+      fetchNotesList,
+      refreshNotesList, // Manual refresh when needed
       searchNotes,
       addNote, 
       updateNote, 
       deleteNote, 
-      selectNote 
+      selectNote,
+      clearActiveNote // Clear active note when needed
     }}>
       {children}
     </NotesContext.Provider>

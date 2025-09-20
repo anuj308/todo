@@ -4,6 +4,67 @@
   border-right: 1px solid var(--border-color);
 }
 
+/* Collapsed Folder Sidebar */
+.folder-sidebar-collapsed {
+  width: 50px;
+  height: 100%;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 44px; /* Account for toggle button */
+}
+
+.sidebar-header-collapsed {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-color);
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.sidebar-title-icon {
+  font-size: 18px;
+  opacity: 0.7;
+}
+
+.folder-icon-btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  margin: 2px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.folder-icon-btn:hover {
+  background: var(--hover-bg);
+}
+
+.folder-icon-btn.active {
+  background: var(--accent-bg);
+}
+
+.folder-icon-large {
+  font-size: 16px;
+  margin-bottom: 2px;
+}
+
+.folder-color-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  margin-top: 1px;
+}
+
 .folder-sidebar .sidebar-header {
   display: flex;
   align-items: center;

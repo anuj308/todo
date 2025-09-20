@@ -5,14 +5,9 @@
   background: var(--sidebar-bg);
   border-right: 1px solid var(--border-color);
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  min-width: 60px;
   max-width: 600px;
   height: 100%;
   overflow: hidden;
-}
-
-.resizable-sidebar.collapsed {
-  width: 60px !important;
 }
 
 .resizable-sidebar.resizing {
@@ -23,33 +18,34 @@
 /* Toggle Button */
 .sidebar-toggle-btn {
   position: absolute;
-  top: 12px;
-  right: 12px;
+  top: 8px;
+  right: 8px;
   z-index: 10;
-  width: 32px;
-  height: 32px;
-  border: none;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border-color);
   border-radius: 6px;
-  background: var(--button-secondary-bg);
-  color: var(--text-secondary);
+  background: var(--surface);
+  color: var(--text-primary);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  opacity: 1;
 }
 
 .sidebar-toggle-btn:hover {
-  background: var(--button-secondary-hover);
-  color: var(--text-primary);
+  background: var(--hover-bg);
+  border-color: var(--accent-color);
   transform: translateY(-1px);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .sidebar-toggle-btn:active {
   transform: translateY(0);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .toggle-icon {
@@ -66,12 +62,40 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  padding-top: 56px; /* Account for toggle button */
+  padding-top: 44px; /* Account for toggle button */
 }
 
 .resizable-sidebar.collapsed .sidebar-content {
   opacity: 0;
   pointer-events: none;
+  overflow: hidden;
+}
+
+/* Collapsed Content */
+.sidebar-collapsed-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 0;
+  height: 100%;
+}
+
+.collapsed-placeholder {
+  display: flex;
+  justify-content: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-color);
+  width: 100%;
+}
+
+.collapsed-icon {
+  font-size: 18px;
+  opacity: 0.7;
+}
+
+.resizable-sidebar.collapsed .sidebar-collapsed-content {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 /* Resize Handle */
@@ -128,28 +152,108 @@
 /* Responsive Design */
 @media (max-width: 768px) {
   .resizable-sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 100vh;
-    z-index: 1000;
-    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    position: relative; /* Keep normal flow like desktop */
+    top: auto;
+    left: auto;
+    height: 100%;
+    z-index: auto;
+    transition: width 0.3s ease;
+    box-shadow: none; /* Remove overlay shadow */
   }
 
+  /* Folder sidebar - normal positioning */
+  .folder-sidebar {
+    /* Keep default positioning */
+  }
+
+  /* Notes sidebar - normal positioning */
+  .notes-sidebar {
+    /* Keep default positioning */
+  }
+
+  /* When collapsed: show thin sidebar like desktop */
   .resizable-sidebar.collapsed {
-    transform: translateX(-100%);
-    width: 280px !important;
+    width: 45px !important; /* Thin collapsed width */
+  }
+
+  /* When expanded: reasonable mobile width */
+  .resizable-sidebar:not(.collapsed) {
+    width: 240px !important; /* Smaller than desktop but usable */
+  }
+
+  /* Toggle button - keep in normal position */
+  .sidebar-toggle-btn {
+    width: 32px;
+    height: 32px;
+    top: 6px;
+    right: 6px;
+  }
+
+  /* Hide resize handle */
+  .sidebar-resizer {
+    display: none;
+  }
+
+  /* Mobile content adjustments */
+  .sidebar-content {
+    padding: 8px;
+    padding-top: 40px; /* Space for toggle button */
+  }
+
+  /* Mobile header adjustments */
+  .sidebar-header {
+    padding: 8px 12px;
+  }
+
+  .sidebar-header h2,
+  .sidebar-header h3 {
+    font-size: 16px;
+    margin: 0;
+  }
+
+  /* Adjust notes count and other elements for mobile */
+  .notes-count {
+    font-size: 11px;
+  }
+
+  .notes-actions button,
+  .add-folder-btn {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+
+  /* Collapsed content - show only essential elements */
+  .resizable-sidebar.collapsed .sidebar-content {
+    padding: 2px;
+    padding-top: 40px;
+  }
+
+  .resizable-sidebar.collapsed .sidebar-header {
+    display: none; /* Hide header when collapsed */
+  }
+
+  /* Show collapsed placeholder */
+  .resizable-sidebar.collapsed .collapsed-placeholder {
+    display: flex;
+    justify-content: center;
+    padding: 8px 0;
+    margin-top: 10px;
+  }
+
+  .collapsed-icon {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .resizable-sidebar {
+    top: 50px; /* Smaller navbar */
+    height: calc(100vh - 50px);
+    width: 300px !important; /* Slightly wider on very small screens */
   }
 
   .sidebar-toggle-btn {
-    position: fixed;
-    top: 12px;
-    left: 12px;
-    z-index: 1001;
-  }
-
-  .sidebar-resizer {
-    display: none;
+    top: 60px;
   }
 }
 
@@ -171,16 +275,14 @@
 }
 
 /* Animation for collapse/expand */
-.resizable-sidebar * {
-  transition: opacity 0.3s ease, transform 0.3s ease;
+.resizable-sidebar .sidebar-content * {
+  transition: opacity 0.3s ease;
 }
 
-.resizable-sidebar.collapsed * {
+.resizable-sidebar.collapsed .sidebar-content * {
   opacity: 0;
-  transform: scale(0.95);
 }
 
 .resizable-sidebar.collapsed .sidebar-toggle-btn {
-  opacity: 1;
-  transform: none;
+  opacity: 1 !important;
 }

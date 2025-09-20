@@ -1,21 +1,33 @@
 import { useNotes } from '../context/NotesContext';
 import { useFolders } from '../context/FoldersContext';
 import NoteItem from './NoteItem';
+import ResizableSidebar from './ResizableSidebar';
 import { FaPlus, FaSearch } from 'react-icons/fa';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import './NotesList.css';
 
 function NotesList() {
-  const { notes, addNote, fetchNotes, loading, error, searchNotes } = useNotes();
+  const { notes, addNote, fetchNotesList, listLoading, error, searchNotes, clearActiveNote, selectNote, activeNote } = useNotes();
   const { selectedFolder, getFolderNotes } = useFolders();
   const [folderNotes, setFolderNotes] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const prevFolderRef = useRef(null);
+  const prevSearchRef = useRef('');
 
   // Fetch notes for selected folder
   useEffect(() => {
     const loadFolderNotes = async () => {
       if (selectedFolder) {
         setIsSearching(true);
+        
+        // Only clear active note when actually changing folders (not on initial load)
+        const folderChanged = prevFolderRef.current && prevFolderRef.current.id !== selectedFolder.id;
+        if (folderChanged) {
+          clearActiveNote();
+        }
+        prevFolderRef.current = selectedFolder;
+        
         try {
           const data = await getFolderNotes(selectedFolder.id);
           setFolderNotes(data.notes || []);
@@ -25,17 +37,28 @@ function NotesList() {
         } finally {
           setIsSearching(false);
         }
+      } else {
+        // No folder selected, clear the ref
+        prevFolderRef.current = null;
       }
     };
 
     loadFolderNotes();
-  }, [selectedFolder, getFolderNotes]);
+  }, [selectedFolder?.id, getFolderNotes]); // Removed clearActiveNote from dependencies
 
   // Handle search
   useEffect(() => {
     const performSearch = async () => {
       if (searchQuery.trim()) {
         setIsSearching(true);
+        
+        // Only clear active note when starting a new search (not during typing)
+        const isNewSearch = prevSearchRef.current === '' && searchQuery.trim() !== '';
+        if (isNewSearch) {
+          clearActiveNote();
+        }
+        prevSearchRef.current = searchQuery.trim();
+        
         try {
           const results = await searchNotes(searchQuery);
           setFolderNotes(results);
@@ -44,16 +67,38 @@ function NotesList() {
         } finally {
           setIsSearching(false);
         }
-      } else if (selectedFolder) {
-        // Reset to folder notes when search is cleared
-        const data = await getFolderNotes(selectedFolder.id);
-        setFolderNotes(data.notes || []);
+      } else {
+        // Search cleared
+        prevSearchRef.current = '';
+        
+        if (selectedFolder) {
+          // Reset to folder notes when search is cleared
+          const data = await getFolderNotes(selectedFolder.id);
+          setFolderNotes(data.notes || []);
+        }
       }
     };
 
     const debounceTimer = setTimeout(performSearch, 300);
     return () => clearTimeout(debounceTimer);
-  }, [searchQuery, selectedFolder, searchNotes, getFolderNotes]);
+  }, [searchQuery, selectedFolder?.id, searchNotes, getFolderNotes]); // Removed clearActiveNote from dependencies
+
+  // Function to determine if a color is light or dark for contrast
+  const getContrastColor = (backgroundColor) => {
+    if (!backgroundColor) return 'white';
+    
+    // Convert hex to RGB
+    const hex = backgroundColor.replace('#', '');
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    
+    // Calculate luminance
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    
+    // Return black for light colors, white for dark colors
+    return luminance > 0.5 ? '#000000' : '#ffffff';
+  };
 
   const handleAddNote = () => {
     const folderId = selectedFolder?.id || null;
@@ -65,13 +110,13 @@ function NotesList() {
   };
 
   const displayNotes = searchQuery ? folderNotes : (selectedFolder ? folderNotes : notes);
-  const isLoading = loading || isSearching;
+  const isLoading = isSearching; // Only show loading during search, not during note selection
 
   return (
-    <div className="notes-sidebar">
+    <ResizableSidebar className="notes-sidebar" type="notes">
       <div className="notes-header">
         <div className="header-title">
-          <h2>{selectedFolder ? selectedFolder.name : 'All Notes'}</h2>
+          <h2>📝 {selectedFolder ? selectedFolder.name : 'All Notes'}</h2>
           <span className="notes-count">
             {displayNotes.length} {displayNotes.length === 1 ? 'note' : 'notes'}
           </span>
@@ -80,11 +125,16 @@ function NotesList() {
           <button 
             className="add-note-btn"
             onClick={handleAddNote}
-            disabled={isLoading}
+            disabled={isSearching} // Only disable during search, not during note loading
             aria-label="Add note"
             title={`Add note to ${selectedFolder?.name || 'default folder'}`}
+            style={selectedFolder?.color ? { 
+              backgroundColor: selectedFolder.color,
+              borderColor: selectedFolder.color,
+              color: getContrastColor(selectedFolder.color)
+            } : {}}
           >
-            <FaPlus /> Add Note
+            <FaPlus />
           </button>
         </div>
       </div>
@@ -167,7 +217,7 @@ function NotesList() {
           })
         )}
       </div>
-    </div>
+    </ResizableSidebar>
   );
 }
 

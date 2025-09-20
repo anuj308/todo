@@ -22,7 +22,10 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true // Enable credentials for cookies
 }));
-app.use(express.json());
+
+// Increase payload limit for image uploads (50MB)
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(cookieParser()); // Add cookie parser middleware
 
 // Routes

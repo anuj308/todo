@@ -1,6 +1,7 @@
 import express from 'express';
 import { 
   getNotes, 
+  getNotesList,
   getNoteById, 
   createNote, 
   updateNote, 
@@ -12,7 +13,10 @@ import { protect } from '../middleware/authMiddleware.js';
 const router = express.Router();
 
 // Apply protect middleware to all routes
-// Get all notes
+// Get note list (titles and metadata only, no content)
+router.get('/list', protect, getNotesList);
+
+// Get all notes (with content - for backward compatibility)
 router.get('/', protect, getNotes);
 
 // Search notes

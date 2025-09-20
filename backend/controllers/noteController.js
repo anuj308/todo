@@ -1,6 +1,36 @@
 import Note from '../models/noteModel.js';
 import Folder from '../models/folderModel.js';
 
+// Get note list (titles and metadata only, no content) - OPTIMIZED
+export const getNotesList = async (req, res) => {
+  try {
+    // Get userId from authenticated user (provided by protect middleware)
+    const userId = req.user.id;
+    const { folderId, includeUnfoldered = false } = req.query;
+    
+    let query = { userId };
+    
+    if (folderId) {
+      query.folderId = folderId;
+    } else if (includeUnfoldered === 'true') {
+      query.$or = [
+        { folderId: null },
+        { folderId: { $exists: false } }
+      ];
+    }
+    
+    // Only select necessary fields for sidebar (NO CONTENT)
+    const notes = await Note.find(query)
+      .populate('folder', 'name color icon')
+      .sort({ isPinned: -1, updatedAt: -1 })
+      .select('_id title createdAt updatedAt folderId isPinned order tags');
+    
+    res.status(200).json(notes);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
 // Get all notes for a user
 export const getNotes = async (req, res) => {
   try {

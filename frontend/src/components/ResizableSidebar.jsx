@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { useSidebar } from '../hooks/useSidebar';
 import './ResizableSidebar.css';
 
-const ResizableSidebar = ({ children, className = '' }) => {
+const ResizableSidebar = ({ children, className = '', type = 'default' }) => {
   const {
     isCollapsed,
     width,
@@ -12,7 +12,7 @@ const ResizableSidebar = ({ children, className = '' }) => {
     startResize,
     stopResize,
     config
-  } = useSidebar();
+  } = useSidebar(type);
 
   const sidebarRef = useRef(null);
   const resizerRef = useRef(null);
@@ -70,7 +70,11 @@ const ResizableSidebar = ({ children, className = '' }) => {
     <div
       ref={sidebarRef}
       className={`resizable-sidebar ${className} ${isCollapsed ? 'collapsed' : ''} ${isResizing ? 'resizing' : ''}`}
-      style={{ width: `${width}px` }}
+      style={{ 
+        width: `${width}px`,
+        minWidth: isCollapsed ? `${config.collapsedWidth}px` : `${config.minWidth}px`,
+        maxWidth: `${config.maxWidth}px`
+      }}
     >
       {/* Collapse/Expand Button */}
       <button
@@ -98,7 +102,18 @@ const ResizableSidebar = ({ children, className = '' }) => {
 
       {/* Sidebar Content */}
       <div className="sidebar-content">
-        {children}
+        {isCollapsed ? (
+          <div className="sidebar-collapsed-content">
+            {/* Collapsed view will be handled by CSS */}
+            <div className="collapsed-placeholder">
+              <span className="collapsed-icon">
+                {type === 'folder' ? '📁' : '📝'}
+              </span>
+            </div>
+          </div>
+        ) : (
+          children
+        )}
       </div>
 
       {/* Resize Handle */}

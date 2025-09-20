@@ -112,11 +112,12 @@ function FolderSidebar() {
     setNewFolderIcon('📁');
   };
 
+  // If loading, show loading state
   if (foldersLoading) {
     return (
-      <ResizableSidebar className="folder-sidebar">
+      <ResizableSidebar className="folder-sidebar" type="folder">
         <div className="sidebar-header">
-          <h3>Folders</h3>
+          <h3>📁 Folders</h3>
         </div>
         <div className="sidebar-loading">Loading folders...</div>
       </ResizableSidebar>
@@ -124,9 +125,9 @@ function FolderSidebar() {
   }
 
   return (
-    <ResizableSidebar className="folder-sidebar">
+    <ResizableSidebar className="folder-sidebar" type="folder">
       <div className="sidebar-header">
-        <h3>Folders</h3>
+        <h3>📁 Folders</h3>
         <button 
           className="add-folder-btn"
           onClick={() => setShowNewFolderForm(true)}
@@ -236,16 +237,6 @@ function FolderSidebar() {
               style={{ backgroundColor: folder.color }}
             />
             <div className="folder-actions">
-              <button
-                className="action-btn"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleAddNote(folder);
-                }}
-                title="Add note"
-              >
-                📝
-              </button>
               {!folder.isDefault && (
                 <>
                   <button

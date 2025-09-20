@@ -1,40 +1,58 @@
 import { useState, useEffect, useCallback } from 'react';
 
-const SIDEBAR_CONFIG = {
-  minWidth: 200,
-  maxWidth: 600,
-  defaultWidth: 280,
-  collapsedWidth: 60,
-  storageKey: 'sidebar-config'
+const SIDEBAR_CONFIGS = {
+  folder: {
+    minWidth: 150, // Reduced from 200
+    maxWidth: 400,
+    defaultWidth: 250, // Reduced from 280
+    collapsedWidth: 50, // Reduced from 60
+    storageKey: 'folder-sidebar-config'
+  },
+  notes: {
+    minWidth: 200, // Reduced from 250
+    maxWidth: 500,
+    defaultWidth: 280, // Reduced from 320
+    collapsedWidth: 50, // Reduced from 60
+    storageKey: 'notes-sidebar-config'
+  },
+  default: {
+    minWidth: 180, // Reduced from 200
+    maxWidth: 600,
+    defaultWidth: 260, // Reduced from 280
+    collapsedWidth: 50, // Reduced from 60
+    storageKey: 'sidebar-config'
+  }
 };
 
-export const useSidebar = () => {
+export const useSidebar = (type = 'default') => {
+  const config = SIDEBAR_CONFIGS[type] || SIDEBAR_CONFIGS.default;
+  
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [width, setWidth] = useState(SIDEBAR_CONFIG.defaultWidth);
+  const [width, setWidth] = useState(config.defaultWidth);
   const [isResizing, setIsResizing] = useState(false);
 
   // Load saved state from localStorage
   useEffect(() => {
-    const saved = localStorage.getItem(SIDEBAR_CONFIG.storageKey);
+    const saved = localStorage.getItem(config.storageKey);
     if (saved) {
       try {
-        const config = JSON.parse(saved);
-        setIsCollapsed(config.isCollapsed || false);
-        setWidth(config.width || SIDEBAR_CONFIG.defaultWidth);
+        const savedConfig = JSON.parse(saved);
+        setIsCollapsed(savedConfig.isCollapsed || false);
+        setWidth(savedConfig.width || config.defaultWidth);
       } catch (error) {
         console.error('Failed to load sidebar config:', error);
       }
     }
-  }, []);
+  }, [config.storageKey, config.defaultWidth]);
 
   // Save state to localStorage
   const saveConfig = useCallback((newIsCollapsed, newWidth) => {
-    const config = {
+    const sidebarConfig = {
       isCollapsed: newIsCollapsed,
       width: newWidth
     };
-    localStorage.setItem(SIDEBAR_CONFIG.storageKey, JSON.stringify(config));
-  }, []);
+    localStorage.setItem(config.storageKey, JSON.stringify(sidebarConfig));
+  }, [config.storageKey]);
 
   const toggleCollapse = useCallback(() => {
     const newIsCollapsed = !isCollapsed;
@@ -44,12 +62,12 @@ export const useSidebar = () => {
 
   const updateWidth = useCallback((newWidth) => {
     const clampedWidth = Math.max(
-      SIDEBAR_CONFIG.minWidth,
-      Math.min(SIDEBAR_CONFIG.maxWidth, newWidth)
+      config.minWidth,
+      Math.min(config.maxWidth, newWidth)
     );
     setWidth(clampedWidth);
     saveConfig(isCollapsed, clampedWidth);
-  }, [isCollapsed, saveConfig]);
+  }, [config.minWidth, config.maxWidth, isCollapsed, saveConfig]);
 
   const startResize = useCallback(() => {
     setIsResizing(true);
@@ -59,7 +77,7 @@ export const useSidebar = () => {
     setIsResizing(false);
   }, []);
 
-  const currentWidth = isCollapsed ? SIDEBAR_CONFIG.collapsedWidth : width;
+  const currentWidth = isCollapsed ? config.collapsedWidth : width;
 
   return {
     isCollapsed,
@@ -69,6 +87,6 @@ export const useSidebar = () => {
     updateWidth,
     startResize,
     stopResize,
-    config: SIDEBAR_CONFIG
+    config
   };
 };

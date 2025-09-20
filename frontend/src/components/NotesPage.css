@@ -4,6 +4,7 @@
   height: calc(100vh - 60px); /* Subtract navbar height */
   background: var(--bg-primary);
   overflow: hidden;
+  position: relative;
 }
 
 .notes-main-content {
@@ -11,6 +12,17 @@
   flex: 1;
   height: 100%;
   overflow: hidden;
+  min-width: 0; /* Prevent flex items from overflowing */
+}
+
+/* Ensure proper flex behavior for children */
+.notes-main-content > * {
+  flex-shrink: 0; /* Sidebars don't shrink */
+}
+
+.notes-main-content .note-editor {
+  flex: 1; /* Editor takes remaining space */
+  min-width: 300px; /* Minimum usable width */
 }
 
 /* Update notes container for the new layout */
@@ -19,23 +31,41 @@
   flex: 1;
   height: 100%;
   background: var(--bg-primary);
+  min-width: 0; /* Prevent flex items from overflowing */
 }
 
 /* Responsive Design */
-@media (max-width: 1200px) {
-  .notes-main-content {
-    flex-direction: column;
+@media (max-width: 1024px) {
+  .notes-page {
+    height: calc(100vh - 60px);
   }
 }
 
 @media (max-width: 768px) {
   .notes-page {
-    flex-direction: column;
+    flex-direction: row;
+    height: calc(100vh - 60px);
+    position: relative;
   }
   
   .notes-main-content {
-    flex-direction: column;
-    height: calc(100vh - 60px);
+    flex: 1;
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+  }
+  
+  /* Note editor takes full height on mobile */
+  .note-editor {
+    position: relative;
+    height: 100%;
+    flex: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .notes-page {
+    height: calc(100vh - 50px); /* Smaller navbar on mobile */
   }
 }
 
