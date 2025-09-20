@@ -17,7 +17,7 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://todo-nine-jade.vercel.app'], // Allow both origins
+  origin: ['http://localhost:5173', 'https://todo-nu-six-91.vercel.app'], // Allow both origins
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true // Enable credentials for cookies
