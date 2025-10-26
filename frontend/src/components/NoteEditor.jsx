@@ -14,6 +14,8 @@ function NoteEditor({ note, onSave, loading }) {
   const [isDragging, setIsDragging] = useState(false);
   const [lastSavedContent, setLastSavedContent] = useState('');
   const [noteSize, setNoteSize] = useState(0);
+  const [editorFontSize, setEditorFontSize] = useState(14);
+  const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
   const [formatState, setFormatState] = useState({
     bold: false,
     italic: false,
@@ -120,6 +122,21 @@ function NoteEditor({ note, onSave, loading }) {
     }
   }, []);
 
+  const ensureTrailingParagraph = useCallback(() => {
+    if (!contentRef.current) return;
+    const root = contentRef.current;
+    const last = root.lastElementChild;
+    
+    // Always ensure there's a trailing paragraph, even if empty
+    const needsTrailing = !last || last.tagName !== 'P' || last.textContent.trim() !== '' || last.querySelector('*');
+    
+    if (needsTrailing) {
+      const p = document.createElement('p');
+      p.innerHTML = '<br>';
+      root.appendChild(p);
+    }
+  }, []);
+
   // Initialize content when note changes
   useEffect(() => {
     if (note) {
@@ -130,6 +147,7 @@ function NoteEditor({ note, onSave, loading }) {
         updateImageCount();
         calculateNoteSize();
         updateFormatState();
+        ensureTrailingParagraph();
       }
     } else {
       setTitle('');
@@ -138,6 +156,7 @@ function NoteEditor({ note, onSave, loading }) {
         setLastSavedContent('');
         setNoteSize(0);
         updateFormatState();
+        ensureTrailingParagraph();
       }
     }
     // Clear any pending saves when note changes
@@ -176,6 +195,7 @@ function NoteEditor({ note, onSave, loading }) {
       updateImageCount();
       calculateNoteSize();
       updateFormatState();
+      ensureTrailingParagraph();
       
       // Clear existing timeout
       if (saveTimeoutRef.current) {
@@ -225,7 +245,7 @@ function NoteEditor({ note, onSave, loading }) {
     } else {
       console.log('Auto-save not triggered:', { hasContentRef: !!contentRef.current, hasNote: !!note, hasNoteId: note?.id });
     }
-  }, [note, title, onSave, updateImageCount, calculateNoteSize, updateFormatState]);
+  }, [note, title, onSave, updateImageCount, calculateNoteSize, updateFormatState, ensureTrailingParagraph]);
 
   // Handle title changes (optimized - only save if title actually changed)
   const handleTitleChange = useCallback((e) => {
@@ -499,12 +519,21 @@ function NoteEditor({ note, onSave, loading }) {
   const insertChecklistItem = useCallback(() => {
     focusEditor();
     restoreSelection();
-    document.execCommand(
-      'insertHTML',
-      false,
-      '<div class="note-checklist-item"><input type="checkbox"> <span>Checklist item</span></div><br>'
-    );
+    const checklistHTML = '<div class="note-checklist-item"><input type="checkbox"> <span contenteditable="true">Checklist item</span></div>';
+    document.execCommand('insertHTML', false, checklistHTML);
+    
+    // Focus the newly inserted span
     setTimeout(() => {
+      const allChecklists = contentRef.current?.querySelectorAll('.note-checklist-item span');
+      const lastChecklist = allChecklists?.[allChecklists.length - 1];
+      if (lastChecklist) {
+        lastChecklist.focus();
+        const range = document.createRange();
+        range.selectNodeContents(lastChecklist);
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
       handleContentChange();
       updateFormatState();
     }, 0);
@@ -517,6 +546,58 @@ function NoteEditor({ note, onSave, loading }) {
       e.preventDefault();
       handleManualSave();
       return;
+    }
+
+    // Zoom in/out/reset (Ctrl + '+', '-', '0')
+    if (e.ctrlKey && (e.key === '+' || e.key === '=')) {
+      e.preventDefault();
+      setEditorFontSize((s) => Math.min(28, s + 2));
+      return;
+    }
+    if (e.ctrlKey && (e.key === '-' || e.key === '_')) {
+      e.preventDefault();
+      setEditorFontSize((s) => Math.max(10, s - 2));
+      return;
+    }
+    if (e.ctrlKey && (e.key === '0' || e.key === ')')) {
+      e.preventDefault();
+      setEditorFontSize(14);
+      return;
+    }
+
+    // Ctrl+Enter: exit current block (pre/blockquote/heading/list/checklist) into a new paragraph
+    if (e.ctrlKey && e.key === 'Enter') {
+      const sel = document.getSelection();
+      const node = sel && sel.anchorNode;
+      const getClosest = (n, selector) => {
+        let el = n instanceof Element ? n : n?.parentElement;
+        while (el && !el.matches(selector)) el = el.parentElement;
+        return el || null;
+      };
+      const inQuote = node && getClosest(node, 'blockquote');
+      const inPre = node && getClosest(node, 'pre');
+      const inHeading = node && getClosest(node, 'h1,h2,h3,h4,h5,h6');
+      const inList = node && getClosest(node, 'ul,ol');
+      const inChecklist = node && getClosest(node, '.note-checklist-item');
+      const block = inQuote || inPre || inHeading || inList || inChecklist;
+      if (block) {
+        e.preventDefault();
+        const p = document.createElement('p');
+        p.innerHTML = '<br>';
+        block.insertAdjacentElement('afterend', p);
+        const range = document.createRange();
+        range.selectNodeContents(p);
+        range.collapse(true);
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+        setTimeout(() => {
+          handleContentChange();
+          updateFormatState();
+          ensureTrailingParagraph();
+        }, 0);
+        return;
+      }
     }
 
     if (e.key === 'Tab') {
@@ -558,13 +639,68 @@ function NoteEditor({ note, onSave, loading }) {
       }
     }
     
-    // Enter key for line breaks
+    // Enter behaviors
     if (e.key === 'Enter' && !e.shiftKey) {
+      const sel = document.getSelection();
+      const node = sel && sel.anchorNode;
+      const getClosest = (n, selector) => {
+        let el = n instanceof Element ? n : n?.parentElement;
+        while (el && !el.matches(selector)) el = el.parentElement;
+        return el || null;
+      };
+
+      const inListItem = node && (getClosest(node, 'li') || getClosest(node, 'ul,ol'));
+      const inChecklist = node && getClosest(node, '.note-checklist-item');
+      const inQuote = node && getClosest(node, 'blockquote');
+      const inPre = node && getClosest(node, 'pre');
+      const inHeading = node && getClosest(node, 'h1,h2,h3,h4,h5,h6');
+
+      // Checklist: insert a new checklist item below
+      if (inChecklist) {
+        e.preventDefault();
+        const newItem = document.createElement('div');
+        newItem.className = 'note-checklist-item';
+        newItem.innerHTML = '<input type="checkbox"> <span contenteditable="true"></span>';
+        inChecklist.insertAdjacentElement('afterend', newItem);
+        // place caret inside new span
+        const span = newItem.querySelector('span');
+        span.focus();
+        const range = document.createRange();
+        range.selectNodeContents(span);
+        range.collapse(true);
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+        setTimeout(() => {
+          handleContentChange();
+          updateFormatState();
+        }, 0);
+        return;
+      }
+
+      // In ordered/unordered list: let browser handle numbering/bullets
+      if (inListItem) {
+        return; // don't preventDefault
+      }
+
+      // In quote/code/heading: insert simple newline to stay in block
+      if (inQuote || inPre || inHeading) {
+        e.preventDefault();
+        document.execCommand('insertLineBreak');
+        setTimeout(() => {
+          handleContentChange();
+          updateFormatState();
+        }, 0);
+        return;
+      }
+
+      // Default: insert paragraph break
       e.preventDefault();
       document.execCommand('insertHTML', false, '<br><br>');
       setTimeout(() => {
         handleContentChange();
         updateFormatState();
+        ensureTrailingParagraph();
       }, 0);
     }
   }, [selectedImage, handleContentChange, handleManualSave, note, deleteNote, focusEditor, updateFormatState]);
@@ -690,6 +826,46 @@ function NoteEditor({ note, onSave, loading }) {
               </button>
             </div>
 
+              <div className="toolbar-group">
+                <button
+                  type="button"
+                  className="toolbar-button"
+                  onMouseDown={(e) => { e.preventDefault(); snapshotSelection(); setEditorFontSize(s => Math.max(10, s - 2)); }}
+                  title="Zoom out"
+                >
+                  −
+                </button>
+                <span className="zoom-indicator" aria-live="polite">{Math.round((editorFontSize/14)*100)}%</span>
+                <button
+                  type="button"
+                  className="toolbar-button"
+                  onMouseDown={(e) => { e.preventDefault(); snapshotSelection(); setEditorFontSize(s => Math.min(28, s + 2)); }}
+                  title="Zoom in"
+                >
+                  +
+                </button>
+                <button
+                  type="button"
+                  className="toolbar-button"
+                  onMouseDown={(e) => { e.preventDefault(); snapshotSelection(); setEditorFontSize(14); }}
+                  title="Reset zoom"
+                >
+                  100%
+                </button>
+              </div>
+
+            <div className="toolbar-group">
+              <button
+                type="button"
+                className="toolbar-button toolbar-help-button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => setShowShortcutsHelp(!showShortcutsHelp)}
+                title="Keyboard shortcuts"
+              >
+                ❓
+              </button>
+            </div>
+
             <div className="toolbar-group heading-group">
               <select
                 className="heading-select"
@@ -810,6 +986,7 @@ function NoteEditor({ note, onSave, loading }) {
           <div
             ref={contentRef}
             className="note-content-editable"
+            style={{ fontSize: `${editorFontSize}px` }}
             contentEditable
             suppressContentEditableWarning
             onInput={handleContentChange}
@@ -826,6 +1003,64 @@ function NoteEditor({ note, onSave, loading }) {
             <div className="drag-overlay">
               <div className="drag-indicator">
                 <span>📁 Drop images here</span>
+              </div>
+            </div>
+          )}
+
+          {/* Keyboard shortcuts help popup */}
+          {showShortcutsHelp && (
+            <div className="shortcuts-help-overlay" onClick={() => setShowShortcutsHelp(false)}>
+              <div className="shortcuts-help-panel" onClick={(e) => e.stopPropagation()}>
+                <div className="shortcuts-help-header">
+                  <h3>⌨️ Keyboard Shortcuts</h3>
+                  <button 
+                    className="shortcuts-close-button"
+                    onClick={() => setShowShortcutsHelp(false)}
+                  >
+                    ✕
+                  </button>
+                </div>
+                <div className="shortcuts-help-content">
+                  <div className="shortcuts-section">
+                    <h4>📝 Formatting</h4>
+                    <ul>
+                      <li><kbd>Ctrl</kbd> + <kbd>B</kbd> — Bold</li>
+                      <li><kbd>Ctrl</kbd> + <kbd>I</kbd> — Italic</li>
+                      <li><kbd>Ctrl</kbd> + <kbd>U</kbd> — Underline</li>
+                    </ul>
+                  </div>
+                  <div className="shortcuts-section">
+                    <h4>🔢 Lists & Structure</h4>
+                    <ul>
+                      <li><kbd>Enter</kbd> — Continue in list/heading/code/quote</li>
+                      <li><kbd>Ctrl</kbd> + <kbd>Enter</kbd> — Exit list/heading/code/quote</li>
+                      <li><kbd>Tab</kbd> — Indent</li>
+                      <li><kbd>Shift</kbd> + <kbd>Tab</kbd> — Outdent</li>
+                    </ul>
+                  </div>
+                  <div className="shortcuts-section">
+                    <h4>🔍 Zoom</h4>
+                    <ul>
+                      <li><kbd>Ctrl</kbd> + <kbd>+</kbd> — Zoom in</li>
+                      <li><kbd>Ctrl</kbd> + <kbd>-</kbd> — Zoom out</li>
+                      <li><kbd>Ctrl</kbd> + <kbd>0</kbd> — Reset zoom</li>
+                    </ul>
+                  </div>
+                  <div className="shortcuts-section">
+                    <h4>💾 File Operations</h4>
+                    <ul>
+                      <li><kbd>Ctrl</kbd> + <kbd>S</kbd> — Save note</li>
+                      <li><kbd>Ctrl</kbd> + <kbd>Delete</kbd> — Delete note</li>
+                    </ul>
+                  </div>
+                  <div className="shortcuts-section">
+                    <h4>🖼️ Images</h4>
+                    <ul>
+                      <li><kbd>Ctrl</kbd> + <kbd>V</kbd> — Paste image</li>
+                      <li><kbd>Delete</kbd> — Remove selected image</li>
+                    </ul>
+                  </div>
+                </div>
               </div>
             </div>
           )}
