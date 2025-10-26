@@ -6,6 +6,7 @@ function NoteEditor({ note, onSave, loading }) {
   const { deleteNote } = useNotes();
   const contentRef = useRef(null);
   const saveTimeoutRef = useRef(null);
+  const selectionRef = useRef(null);
   const [title, setTitle] = useState('');
   const [selectedImage, setSelectedImage] = useState(null);
   const [imageCount, setImageCount] = useState(0);
@@ -13,6 +14,18 @@ function NoteEditor({ note, onSave, loading }) {
   const [isDragging, setIsDragging] = useState(false);
   const [lastSavedContent, setLastSavedContent] = useState('');
   const [noteSize, setNoteSize] = useState(0);
+  const [formatState, setFormatState] = useState({
+    bold: false,
+    italic: false,
+    underline: false,
+    strikeThrough: false,
+    unorderedList: false,
+    orderedList: false,
+    blockquote: false,
+    code: false,
+    align: 'left',
+    heading: 'p'
+  });
 
   // Calculate note size in KB
   const calculateNoteSize = useCallback(() => {
@@ -24,6 +37,89 @@ function NoteEditor({ note, onSave, loading }) {
     }
   }, [title]);
 
+  const snapshotSelection = useCallback(() => {
+    if (typeof document === 'undefined') return;
+    const selection = document.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      selectionRef.current = selection.getRangeAt(0);
+    }
+  }, []);
+
+  const restoreSelection = useCallback(() => {
+    if (typeof document === 'undefined') return;
+    const selection = document.getSelection();
+    if (!selection || !selectionRef.current) return;
+    try {
+      selection.removeAllRanges();
+      selection.addRange(selectionRef.current);
+    } catch (error) {
+      console.warn('Unable to restore selection', error);
+    }
+  }, []);
+
+  const focusEditor = useCallback(() => {
+    if (contentRef.current) {
+      contentRef.current.focus({ preventScroll: false });
+      restoreSelection();
+    }
+  }, [restoreSelection]);
+
+  const updateFormatState = useCallback(() => {
+    if (!contentRef.current || typeof document === 'undefined') return;
+    const selection = document.getSelection();
+    if (!selection || selection.rangeCount === 0) {
+      setFormatState({
+        bold: false,
+        italic: false,
+        underline: false,
+        strikeThrough: false,
+        unorderedList: false,
+        orderedList: false,
+        blockquote: false,
+        code: false,
+        align: 'left',
+        heading: 'p'
+      });
+      return;
+    }
+    const anchorNode = selection.anchorNode;
+    if (!anchorNode) return;
+    if (!contentRef.current.contains(anchorNode)) return;
+
+    try {
+      if (selection.rangeCount > 0) {
+        selectionRef.current = selection.getRangeAt(0).cloneRange();
+      }
+      const currentHeadingRaw = document.queryCommandValue('formatBlock') || 'p';
+      let currentHeading = currentHeadingRaw.toLowerCase();
+      if (currentHeading === 'normal' || currentHeading === 'div') {
+        currentHeading = 'p';
+      }
+
+      const alignmentState = (() => {
+        if (document.queryCommandState('justifyCenter')) return 'center';
+        if (document.queryCommandState('justifyRight')) return 'right';
+        if (document.queryCommandState('justifyFull')) return 'justify';
+        return 'left';
+      })();
+
+      setFormatState({
+        bold: document.queryCommandState('bold'),
+        italic: document.queryCommandState('italic'),
+        underline: document.queryCommandState('underline'),
+        strikeThrough: document.queryCommandState('strikeThrough'),
+        unorderedList: document.queryCommandState('insertUnorderedList'),
+        orderedList: document.queryCommandState('insertOrderedList'),
+        blockquote: currentHeading === 'blockquote',
+        code: currentHeading === 'pre',
+        align: alignmentState,
+        heading: currentHeading
+      });
+    } catch (error) {
+      console.warn('Unable to update format state', error);
+    }
+  }, []);
+
   // Initialize content when note changes
   useEffect(() => {
     if (note) {
@@ -33,6 +129,7 @@ function NoteEditor({ note, onSave, loading }) {
         setLastSavedContent(note.content || ''); // Track the loaded content
         updateImageCount();
         calculateNoteSize();
+        updateFormatState();
       }
     } else {
       setTitle('');
@@ -40,6 +137,7 @@ function NoteEditor({ note, onSave, loading }) {
         contentRef.current.innerHTML = '';
         setLastSavedContent('');
         setNoteSize(0);
+        updateFormatState();
       }
     }
     // Clear any pending saves when note changes
@@ -49,6 +147,19 @@ function NoteEditor({ note, onSave, loading }) {
     }
     setSaveStatus('success');
   }, [note]);
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return undefined;
+
+    const handleSelectionChange = () => {
+      updateFormatState();
+    };
+
+    document.addEventListener('selectionchange', handleSelectionChange);
+    return () => {
+      document.removeEventListener('selectionchange', handleSelectionChange);
+    };
+  }, [updateFormatState]);
 
   // Update image count
   const updateImageCount = useCallback(() => {
@@ -64,6 +175,7 @@ function NoteEditor({ note, onSave, loading }) {
       console.log('Auto-save triggered for note:', note.id);
       updateImageCount();
       calculateNoteSize();
+      updateFormatState();
       
       // Clear existing timeout
       if (saveTimeoutRef.current) {
@@ -113,7 +225,7 @@ function NoteEditor({ note, onSave, loading }) {
     } else {
       console.log('Auto-save not triggered:', { hasContentRef: !!contentRef.current, hasNote: !!note, hasNoteId: note?.id });
     }
-  }, [note, title, onSave, updateImageCount, calculateNoteSize]);
+  }, [note, title, onSave, updateImageCount, calculateNoteSize, updateFormatState]);
 
   // Handle title changes (optimized - only save if title actually changed)
   const handleTitleChange = useCallback((e) => {
@@ -286,6 +398,7 @@ function NoteEditor({ note, onSave, loading }) {
     
     // Update content
     handleContentChange();
+    updateFormatState();
   };
 
   // Handle image resize
@@ -337,7 +450,65 @@ function NoteEditor({ note, onSave, loading }) {
     
     selectedImage.style.maxWidth = sizes[size];
     handleContentChange();
+    updateFormatState();
   };
+
+  const applyFormatting = useCallback((command, value = null) => {
+    focusEditor();
+    try {
+      restoreSelection();
+      document.execCommand(command, false, value);
+      if (command === 'hiliteColor' && value) {
+        // Fallback for browsers that only support backColor
+        document.execCommand('backColor', false, value);
+      }
+      setTimeout(() => {
+        handleContentChange();
+        updateFormatState();
+      }, 0);
+    } catch (error) {
+      console.error('Formatting command failed', command, error);
+      if (command === 'hiliteColor' && value) {
+        restoreSelection();
+        document.execCommand('backColor', false, value);
+      }
+    }
+  }, [focusEditor, handleContentChange, updateFormatState, restoreSelection]);
+
+  const applyHeading = useCallback((value) => {
+    focusEditor();
+    restoreSelection();
+    const block = value === 'p' ? 'P' : value.toUpperCase();
+    document.execCommand('formatBlock', false, block);
+    setTimeout(() => {
+      handleContentChange();
+      updateFormatState();
+    }, 0);
+  }, [focusEditor, handleContentChange, updateFormatState, restoreSelection]);
+
+  const insertDivider = useCallback(() => {
+    focusEditor();
+    restoreSelection();
+    document.execCommand('insertHorizontalRule');
+    setTimeout(() => {
+      handleContentChange();
+      updateFormatState();
+    }, 0);
+  }, [focusEditor, handleContentChange, updateFormatState, restoreSelection]);
+
+  const insertChecklistItem = useCallback(() => {
+    focusEditor();
+    restoreSelection();
+    document.execCommand(
+      'insertHTML',
+      false,
+      '<div class="note-checklist-item"><input type="checkbox"> <span>Checklist item</span></div><br>'
+    );
+    setTimeout(() => {
+      handleContentChange();
+      updateFormatState();
+    }, 0);
+  }, [focusEditor, handleContentChange, updateFormatState, restoreSelection]);
 
   // Handle keyboard shortcuts
   const handleKeyDown = useCallback((e) => {
@@ -345,6 +516,21 @@ function NoteEditor({ note, onSave, loading }) {
     if (e.ctrlKey && e.key === 's') {
       e.preventDefault();
       handleManualSave();
+      return;
+    }
+
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      focusEditor();
+      if (e.shiftKey) {
+        document.execCommand('outdent');
+      } else {
+        document.execCommand('indent');
+      }
+      setTimeout(() => {
+        handleContentChange();
+        updateFormatState();
+      }, 0);
       return;
     }
     
@@ -368,6 +554,7 @@ function NoteEditor({ note, onSave, loading }) {
         container.remove();
         setSelectedImage(null);
         handleContentChange();
+        updateFormatState();
       }
     }
     
@@ -375,8 +562,12 @@ function NoteEditor({ note, onSave, loading }) {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       document.execCommand('insertHTML', false, '<br><br>');
+      setTimeout(() => {
+        handleContentChange();
+        updateFormatState();
+      }, 0);
     }
-  }, [selectedImage, handleContentChange, handleManualSave, note, deleteNote]);
+  }, [selectedImage, handleContentChange, handleManualSave, note, deleteNote, focusEditor, updateFormatState]);
 
   // Click outside to deselect image
   useEffect(() => {
@@ -459,6 +650,163 @@ function NoteEditor({ note, onSave, loading }) {
         </div>
 
         <div className={`content-wrapper ${isDragging ? 'drag-active' : ''}`}>
+          <div className="editor-toolbar" role="toolbar" aria-label="Formatting options">
+            <div className="toolbar-group">
+              <button
+                type="button"
+                className={`toolbar-button ${formatState.bold ? 'active' : ''}`}
+                onMouseDown={(e) => { e.preventDefault(); snapshotSelection(); }}
+                onClick={() => applyFormatting('bold')}
+                title="Bold (Ctrl+B)"
+              >
+                B
+              </button>
+              <button
+                type="button"
+                className={`toolbar-button ${formatState.italic ? 'active' : ''}`}
+                onMouseDown={(e) => { e.preventDefault(); snapshotSelection(); }}
+                onClick={() => applyFormatting('italic')}
+                title="Italic (Ctrl+I)"
+              >
+                I
+              </button>
+              <button
+                type="button"
+                className={`toolbar-button ${formatState.underline ? 'active' : ''}`}
+                onMouseDown={(e) => { e.preventDefault(); snapshotSelection(); }}
+                onClick={() => applyFormatting('underline')}
+                title="Underline (Ctrl+U)"
+              >
+                U
+              </button>
+              <button
+                type="button"
+                className={`toolbar-button ${formatState.strikeThrough ? 'active' : ''}`}
+                onMouseDown={(e) => { e.preventDefault(); snapshotSelection(); }}
+                onClick={() => applyFormatting('strikeThrough')}
+                title="Strikethrough"
+              >
+                S
+              </button>
+            </div>
+
+            <div className="toolbar-group heading-group">
+              <select
+                className="heading-select"
+                value={formatState.heading}
+                onChange={(e) => applyHeading(e.target.value)}
+                onMouseDown={snapshotSelection}
+                title="Text style"
+              >
+                <option value="p">Body</option>
+                <option value="h1">Heading 1</option>
+                <option value="h2">Heading 2</option>
+                <option value="h3">Heading 3</option>
+                <option value="blockquote">Quote</option>
+                <option value="pre">Code</option>
+              </select>
+            </div>
+
+            <div className="toolbar-group">
+              <button
+                type="button"
+                className={`toolbar-button ${formatState.unorderedList ? 'active' : ''}`}
+                onMouseDown={(e) => { e.preventDefault(); snapshotSelection(); }}
+                onClick={() => applyFormatting('insertUnorderedList')}
+                title="Bulleted list"
+              >
+                •
+              </button>
+              <button
+                type="button"
+                className={`toolbar-button ${formatState.orderedList ? 'active' : ''}`}
+                onMouseDown={(e) => { e.preventDefault(); snapshotSelection(); }}
+                onClick={() => applyFormatting('insertOrderedList')}
+                title="Numbered list"
+              >
+                1.
+              </button>
+              <button
+                type="button"
+                className="toolbar-button"
+                onMouseDown={(e) => { e.preventDefault(); snapshotSelection(); }}
+                onClick={insertChecklistItem}
+                title="Checklist"
+              >
+                ☑️
+              </button>
+            </div>
+
+            <div className="toolbar-group">
+              <button
+                type="button"
+                className={`toolbar-button ${formatState.align === 'left' ? 'active' : ''}`}
+                onMouseDown={(e) => { e.preventDefault(); snapshotSelection(); }}
+                onClick={() => applyFormatting('justifyLeft')}
+                title="Align left"
+              >
+                L
+              </button>
+              <button
+                type="button"
+                className={`toolbar-button ${formatState.align === 'center' ? 'active' : ''}`}
+                onMouseDown={(e) => { e.preventDefault(); snapshotSelection(); }}
+                onClick={() => applyFormatting('justifyCenter')}
+                title="Align center"
+              >
+                C
+              </button>
+              <button
+                type="button"
+                className={`toolbar-button ${formatState.align === 'right' ? 'active' : ''}`}
+                onMouseDown={(e) => { e.preventDefault(); snapshotSelection(); }}
+                onClick={() => applyFormatting('justifyRight')}
+                title="Align right"
+              >
+                R
+              </button>
+              <button
+                type="button"
+                className={`toolbar-button ${formatState.align === 'justify' ? 'active' : ''}`}
+                onMouseDown={(e) => { e.preventDefault(); snapshotSelection(); }}
+                onClick={() => applyFormatting('justifyFull')}
+                title="Justify"
+              >
+                J
+              </button>
+            </div>
+
+            <div className="toolbar-group">
+              <button
+                type="button"
+                className="toolbar-button"
+                onMouseDown={(e) => { e.preventDefault(); snapshotSelection(); }}
+                onClick={() => applyFormatting('hiliteColor', '#fff4a3')}
+                title="Highlight"
+              >
+                HL
+              </button>
+              <button
+                type="button"
+                className="toolbar-button"
+                onMouseDown={(e) => { e.preventDefault(); snapshotSelection(); }}
+                onClick={() => applyFormatting('removeFormat')}
+                title="Clear formatting"
+              >
+                CLR
+              </button>
+              <button
+                type="button"
+                className="toolbar-button"
+                onMouseDown={(e) => { e.preventDefault(); snapshotSelection(); }}
+                onClick={insertDivider}
+                title="Insert divider"
+              >
+                —
+              </button>
+            </div>
+          </div>
+
           <div
             ref={contentRef}
             className="note-content-editable"
