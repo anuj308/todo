@@ -176,10 +176,11 @@
   transition: border-color 0.2s ease;
 }
 
-.heading-select:focus {
+.heading-select:focus,
+.heading-select:focus-visible {
   outline: none;
-  border-color: var(--accent-color);
-  box-shadow: 0 0 0 2px var(--accent-color-alpha);
+  border-color: var(--border-color);
+  box-shadow: none;
 }
 
 .zoom-indicator {
