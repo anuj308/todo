@@ -22,7 +22,21 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://todo-nu-six-91.vercel.app'], // Allow both origins
+  origin: function(origin, callback) {
+    // Allow requests with no origin (mobile apps, Postman, etc.)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'https://todo-nu-six-91.vercel.app'
+    ];
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(null, true); // Allow all origins for development (mobile app)
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true // Enable credentials for cookies
@@ -63,8 +77,11 @@ app.get('/', (req, res) => {
     await connectDB();
     
     const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => {
+    // Listen on 0.0.0.0 to allow connections from mobile devices on same network
+    app.listen(PORT, '0.0.0.0', () => {
       console.log(`Server running on port ${PORT}`);
+      console.log(`Local: http://localhost:${PORT}`);
+      console.log(`Network: accessible from devices on same WiFi`);
     });
   } catch (error) {
     console.error('Failed to connect to the database:', error);

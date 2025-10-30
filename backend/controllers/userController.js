@@ -57,12 +57,15 @@ export const registerUser = async (req, res) => {
         // Don't fail user registration if folder creation fails
       }
 
-      generateTokenAndSetCookie(res, user._id);
+      const token = generateTokenAndSetCookie(res, user._id);
       
       res.status(201).json({
-        id: user._id,
-        name: user.name,
-        email: user.email,
+        token, // Include token for mobile app
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+        }
       });
     } else {
       res.status(400).json({ message: 'Invalid user data' });
@@ -94,12 +97,15 @@ export const loginUser = async (req, res) => {
 
     // If user exists and password matches
     if (user && (await user.matchPassword(password))) {
-      generateTokenAndSetCookie(res, user._id);
+      const token = generateTokenAndSetCookie(res, user._id);
       
       res.status(200).json({
-        id: user._id,
-        name: user.name,
-        email: user.email,
+        token, // Include token for mobile app
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+        }
       });
     } else {
       res.status(401).json({ message: 'Invalid email or password' });

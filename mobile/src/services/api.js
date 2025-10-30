@@ -8,7 +8,7 @@ import { getToken } from '../utils/storage';
 // For production: https://your-backend.onrender.com/api
 
 const API_BASE_URL = __DEV__ 
-  ? 'http://10.0.2.2:5000/api' // Default for Android emulator
+  ? 'http://10.128.146.248:5000/api' // Your computer's IP for physical device testing
   : 'https://your-backend.onrender.com/api'; // Update with your production URL
 
 const api = axios.create({
