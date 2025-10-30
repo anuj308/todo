@@ -20,12 +20,23 @@ const AnalyticsPage = () => {
   const { isDark } = useTheme();
   const navigate = useNavigate();
   const [viewPeriod, setViewPeriod] = useState('day'); // day, week, month
-  const [dateRange, setDateRange] = useState({ start: new Date(), end: new Date() });
+  const [dateRange, setDateRange] = useState({ start: null, end: null });
   const [dataLoading, setDataLoading] = useState(true);
+  const [hasInitialized, setHasInitialized] = useState(false);
+
+  // Initialize date range on mount
+  useEffect(() => {
+    if (!hasInitialized) {
+      updateDateRange('day');
+      setHasInitialized(true);
+    }
+  }, []);
 
   useEffect(() => {
-    updateDateRange(viewPeriod);
-  }, [viewPeriod, selectedDate]);
+    if (hasInitialized) {
+      updateDateRange(viewPeriod);
+    }
+  }, [viewPeriod, selectedDate, hasInitialized]);
 
   useEffect(() => {
     const fetchData = async () => {
