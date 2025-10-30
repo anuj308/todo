@@ -604,6 +604,7 @@
 /* Day View Styles */
 .day-view {
   height: 100%;
+  min-height: calc(100vh - 260px);
   overflow-y: auto;
 }
 
@@ -637,8 +638,7 @@
 
 .day-schedule {
   border-bottom: 1px solid var(--border-color);
-  max-height: 400px;
-  overflow-y: auto;
+  max-height: none;
 }
 
 .hour-slot {
@@ -674,6 +674,90 @@
   display: flex;
   flex-direction: column;
   gap: 0.1rem;
+}
+
+.todo-block {
+  margin-bottom: 0.4rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: 0.5rem;
+  border-left: 3px solid var(--primary-color);
+  border: 1px solid rgba(37, 99, 235, 0.22);
+  background: rgba(37, 99, 235, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.todo-block:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.18);
+  background: rgba(37, 99, 235, 0.18);
+}
+
+.todo-block.completed {
+  opacity: 0.7;
+  border-left-color: rgba(16, 185, 129, 0.8);
+  background: rgba(16, 185, 129, 0.12);
+}
+
+.todo-block.priority-low {
+  border-left-color: #22c55e;
+}
+
+.todo-block.priority-medium {
+  border-left-color: #3b82f6;
+}
+
+.todo-block.priority-high {
+  border-left-color: #f97316;
+}
+
+.todo-block.priority-urgent {
+  border-left-color: #ef4444;
+}
+
+.todo-block-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.todo-block-time {
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.todo-block-title {
+  font-weight: 600;
+  color: var(--text-color);
+  font-size: 0.85rem;
+}
+
+.todo-block-description {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.35;
+}
+
+.todo-block-meta {
+  display: flex;
+  gap: 0.75rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.todo-block-badge {
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  background: rgba(148, 163, 184, 0.16);
+  color: var(--text-secondary);
 }
 
 .time-log-range {
@@ -713,6 +797,16 @@
 .day-time-logs {
   padding: 1.5rem;
   border-top: 1px solid var(--border-color);
+}
+
+.all-day-slot {
+  background: var(--card-bg);
+}
+
+.all-day-content {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem;
 }
 
 .day-time-logs h3 {

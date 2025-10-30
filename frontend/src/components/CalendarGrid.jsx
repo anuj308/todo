@@ -45,6 +45,13 @@ const CalendarGrid = ({ selectedDate, viewMode, onDateSelect, filterMode = 'all'
     return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
   };
 
+  const hasScheduledTime = (todo) => {
+    if (!todo?.dueDate) return false;
+    const date = new Date(todo.dueDate);
+    if (Number.isNaN(date.getTime())) return false;
+    return date.getHours() !== 0 || date.getMinutes() !== 0;
+  };
+
   const getCategoryClass = (category) => {
     if (!category) return 'other';
     return category.toString().trim().toLowerCase().replace(/[^a-z0-9]+/g, '-');
@@ -73,6 +80,7 @@ const CalendarGrid = ({ selectedDate, viewMode, onDateSelect, filterMode = 'all'
   };
 
   const renderMonthView = () => {
+    const monthVisibleLimit = filterMode === 'all' ? 4 : 8;
     const year = selectedDate.getFullYear();
     const month = selectedDate.getMonth();
 
@@ -90,10 +98,9 @@ const CalendarGrid = ({ selectedDate, viewMode, onDateSelect, filterMode = 'all'
   const logs = showLogs ? getTimeLogsForDate(date) : [];
       const productivityLevel = getProductivityLevel(todos);
 
-      const MAX_VISIBLE = 4;
-      const visibleTodos = todos.slice(0, Math.min(todos.length, MAX_VISIBLE));
-      const remainingSlots = Math.max(0, MAX_VISIBLE - visibleTodos.length);
-      const visibleLogs = remainingSlots > 0 ? logs.slice(0, remainingSlots) : [];
+  const visibleTodos = todos.slice(0, Math.min(todos.length, monthVisibleLimit));
+  const remainingSlots = Math.max(0, monthVisibleLimit - visibleTodos.length);
+  const visibleLogs = remainingSlots > 0 ? logs.slice(0, remainingSlots) : [];
   const totalEntries = todos.length + logs.length;
   const remainingCount = Math.max(0, totalEntries - (visibleTodos.length + visibleLogs.length));
 
@@ -189,6 +196,9 @@ const CalendarGrid = ({ selectedDate, viewMode, onDateSelect, filterMode = 'all'
       weekDays.push(date);
     }
 
+    const weekTodoLimit = filterMode === 'all' ? 4 : 8;
+    const weekLogLimit = filterMode === 'all' ? 3 : 6;
+
     return (
       <div className="week-view">
         <div className="week-header">
@@ -221,7 +231,7 @@ const CalendarGrid = ({ selectedDate, viewMode, onDateSelect, filterMode = 'all'
                   <div className="day-number">{date.getDate()}</div>
                 </div>
                 <div className="week-day-content">
-                  {todos.slice(0, 4).map(todo => {
+                  {todos.slice(0, weekTodoLimit).map(todo => {
                     const timeLabel = getTimeLabel(todo);
                     return (
                       <div
@@ -246,12 +256,12 @@ const CalendarGrid = ({ selectedDate, viewMode, onDateSelect, filterMode = 'all'
                       </div>
                     );
                   })}
-                  {todos.length > 4 && (
-                    <div className="more-todos">+{todos.length - 4} more todos</div>
+                  {todos.length > weekTodoLimit && (
+                    <div className="more-todos">+{todos.length - weekTodoLimit} more todos</div>
                   )}
                   {logs.length > 0 && (
                     <div className="week-logs">
-                      {logs.slice(0, 3).map(log => (
+                      {logs.slice(0, weekLogLimit).map(log => (
                         <div
                           key={log.id}
                           className={`week-log category-${getCategoryClass(log.category)}`}
@@ -264,8 +274,8 @@ const CalendarGrid = ({ selectedDate, viewMode, onDateSelect, filterMode = 'all'
                           <span className="week-log-title">{log.activity}</span>
                         </div>
                       ))}
-                      {logs.length > 3 && (
-                        <div className="more-logs">+{logs.length - 3} more logs</div>
+                      {logs.length > weekLogLimit && (
+                        <div className="more-logs">+{logs.length - weekLogLimit} more logs</div>
                       )}
                     </div>
                   )}
@@ -279,7 +289,7 @@ const CalendarGrid = ({ selectedDate, viewMode, onDateSelect, filterMode = 'all'
   };
 
   const renderDayView = () => {
-  const todos = showTodos ? getTodosForDate(selectedDate) : [];
+    const todos = showTodos ? getTodosForDate(selectedDate) : [];
   const timeLogs = showLogs ? getTimeLogsForDate(selectedDate) : [];
     const hours = Array.from({ length: 24 }, (_, i) => i);
 
@@ -290,6 +300,19 @@ const CalendarGrid = ({ selectedDate, viewMode, onDateSelect, filterMode = 'all'
         acc[hour] = [];
       }
       acc[hour].push(log);
+      return acc;
+    }, {});
+
+    const scheduledTodos = todos.filter(hasScheduledTime);
+    const unscheduledTodos = todos.filter(todo => !hasScheduledTime(todo));
+
+    const todosByHour = scheduledTodos.reduce((acc, todo) => {
+      const due = new Date(todo.dueDate);
+      const hour = due.getHours();
+      if (!acc[hour]) {
+        acc[hour] = [];
+      }
+      acc[hour].push(todo);
       return acc;
     }, {});
 
@@ -327,6 +350,32 @@ const CalendarGrid = ({ selectedDate, viewMode, onDateSelect, filterMode = 'all'
         </div>
 
         <div className="day-schedule">
+          {showTodos && unscheduledTodos.length > 0 && (
+            <div className="hour-slot all-day-slot">
+              <div className="hour-label">All day</div>
+              <div className="hour-content all-day-content">
+                {unscheduledTodos.map(todo => (
+                  <div
+                    key={todo.id}
+                    className={`todo-block priority-${todo.priority} ${todo.isCompleted ? 'completed' : ''}`}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onEventSelect('todo', todo);
+                    }}
+                  >
+                    <div className="todo-block-header">
+                      <span className="todo-block-title">{todo.title}</span>
+                      <span className="todo-block-badge">No time set</span>
+                    </div>
+                    {todo.description && (
+                      <p className="todo-block-description">{todo.description}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {hours.map(hour => (
             <div key={hour} className="hour-slot">
               <div className="hour-label">
@@ -336,25 +385,55 @@ const CalendarGrid = ({ selectedDate, viewMode, onDateSelect, filterMode = 'all'
                   : `${hour - 12} PM`}
               </div>
               <div className="hour-content">
-                {logsByHour[hour]?.length ? (
-                  logsByHour[hour]
-                    .sort((a, b) => new Date(a.startTime) - new Date(b.startTime))
-                    .map(log => (
-                      <div
-                        key={log.id}
-                        className={`time-log-block category-${getCategoryClass(log.category)}`}
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          onEventSelect('log', log);
-                        }}
-                      >
-                        <div className="time-log-range">{formatLogRange(log)}</div>
-                        <div className="time-log-activity">{log.activity}</div>
-                      </div>
-                    ))
-                ) : (
-                  <div className="time-block-placeholder" />
-                )}
+                {(() => {
+                  const logsForHour = logsByHour[hour]?.slice().sort((a, b) => new Date(a.startTime) - new Date(b.startTime)) || [];
+                  const todosForHour = todosByHour[hour]?.slice().sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate)) || [];
+                  const hasEntries = todosForHour.length > 0 || logsForHour.length > 0;
+
+                  if (!hasEntries) {
+                    return <div className="time-block-placeholder" />;
+                  }
+
+                  return (
+                    <>
+                      {todosForHour.map(todo => (
+                        <div
+                          key={`todo-${todo.id}`}
+                          className={`todo-block priority-${todo.priority} ${todo.isCompleted ? 'completed' : ''}`}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onEventSelect('todo', todo);
+                          }}
+                        >
+                          <div className="todo-block-header">
+                            <span className="todo-block-time">{getTimeLabel(todo)}</span>
+                            <span className="todo-block-title">{todo.title}</span>
+                          </div>
+                          {todo.description && (
+                            <p className="todo-block-description">{todo.description}</p>
+                          )}
+                          <div className="todo-block-meta">
+                            <span>{todo.completionPercentage}% done</span>
+                            {todo.estimatedHours ? <span>{todo.estimatedHours}h est.</span> : null}
+                          </div>
+                        </div>
+                      ))}
+                      {logsForHour.map(log => (
+                        <div
+                          key={`log-${log.id}`}
+                          className={`time-log-block category-${getCategoryClass(log.category)}`}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onEventSelect('log', log);
+                          }}
+                        >
+                          <div className="time-log-range">{formatLogRange(log)}</div>
+                          <div className="time-log-activity">{log.activity}</div>
+                        </div>
+                      ))}
+                    </>
+                  );
+                })()}
               </div>
             </div>
           ))}

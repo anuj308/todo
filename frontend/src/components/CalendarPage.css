@@ -204,8 +204,9 @@
   border-radius: 1.25rem;
   border: 1px solid var(--border-color);
   box-shadow: 0 24px 45px rgba(15, 23, 42, 0.08);
-  min-height: 0;
-  overflow: hidden;
+  min-height: calc(100vh - 220px);
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .calendar-main .calendar-grid {
@@ -351,6 +352,7 @@
 
   .calendar-main {
     margin: 1rem 1.25rem 1.5rem;
+    min-height: auto;
   }
 
   .calendar-sidebar {
