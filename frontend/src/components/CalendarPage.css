@@ -286,6 +286,34 @@
   color: inherit;
 }
 
+.diary-modal textarea[readonly] {
+  background: rgba(148, 163, 184, 0.08);
+  cursor: not-allowed;
+  border-style: dashed;
+}
+
+.diary-modal-readonly {
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px dashed rgba(148, 163, 184, 0.45);
+  padding: 1rem;
+  min-height: 160px;
+  line-height: 1.6;
+  background: rgba(148, 163, 184, 0.08);
+  color: inherit;
+  white-space: pre-wrap;
+}
+
+.diary-modal-readonly p {
+  margin: 0;
+}
+
+.diary-modal-note {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
 .diary-modal textarea:focus {
   outline: none;
   border-color: var(--primary-color);

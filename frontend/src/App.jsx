@@ -5,6 +5,7 @@ import NotesPage from './components/NotesPage';
 import TodoList from './components/TodoList';
 import TodoForm from './components/TodoForm';
 import CalendarPage from './components/CalendarPage';
+import DiaryPage from './components/DiaryPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import RedirectIfAuthenticated from './components/RedirectIfAuthenticated';
 import Navbar from './components/Navbar';
@@ -60,6 +61,14 @@ const App = () => {
                                         element={
                                             <ProtectedRoute>
                                                 <CalendarPage />
+                                            </ProtectedRoute>
+                                        } 
+                                    />
+                                    <Route 
+                                        path="/diary" 
+                                        element={
+                                            <ProtectedRoute>
+                                                <DiaryPage />
                                             </ProtectedRoute>
                                         } 
                                     />

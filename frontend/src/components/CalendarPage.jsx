@@ -53,6 +53,15 @@ function getDateKey(date) {
   return normalized.toISOString().split('T')[0];
 }
 
+function isTodayDate(date) {
+  if (!date) return false;
+  const target = new Date(date);
+  target.setHours(0, 0, 0, 0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return target.getTime() === today.getTime();
+}
+
 function formatDurationLabel(minutes) {
   if (!minutes) return '0m';
   const hrs = Math.floor(minutes / 60);
@@ -94,6 +103,7 @@ const CalendarPage = () => {
   const [diaryContent, setDiaryContent] = useState('');
   const [diarySaving, setDiarySaving] = useState(false);
   const [diaryAlert, setDiaryAlert] = useState(null);
+  const canEditDiary = isTodayDate(selectedDate);
 
   const handleDateSelect = (date) => {
     setSelectedDate(date);
@@ -291,6 +301,10 @@ const CalendarPage = () => {
   };
 
   const handleDiarySave = async () => {
+    if (!canEditDiary) {
+      setDiaryAlert('Only today\'s diary can be edited.');
+      return;
+    }
     setDiarySaving(true);
     setDiaryAlert(null);
     try {
@@ -724,18 +738,31 @@ const CalendarPage = () => {
       {diaryModalOpen && (
         <Modal title={`Daily Diary — ${formatDateForHeader(selectedDate)}`} onClose={closeDiaryModal}>
           <div className="diary-modal">
-            <textarea
-              value={diaryContent}
-              onChange={(event) => setDiaryContent(event.target.value)}
-              rows={12}
-              placeholder="How did today go? What do you want to remember?"
-            />
+            {canEditDiary ? (
+              <textarea
+                value={diaryContent}
+                onChange={(event) => setDiaryContent(event.target.value)}
+                rows={12}
+                placeholder="How did today go? What do you want to remember?"
+              />
+            ) : (
+              <div className="diary-modal-readonly">
+                {diaryContent ? (
+                  <p>{diaryContent}</p>
+                ) : (
+                  <p className="diary-placeholder">No entry for this day.</p>
+                )}
+              </div>
+            )}
+            {!canEditDiary && (
+              <p className="diary-modal-note">Past entries are read-only. Only today\'s diary can be updated.</p>
+            )}
             {diaryAlert && <div className="diary-alert">{diaryAlert}</div>}
             <div className="modal-actions">
               <button type="button" className="secondary" onClick={closeDiaryModal}>
                 Cancel
               </button>
-              <button type="button" onClick={handleDiarySave} disabled={diarySaving}>
+              <button type="button" onClick={handleDiarySave} disabled={!canEditDiary || diarySaving}>
                 {diarySaving ? 'Saving…' : 'Save entry'}
               </button>
             </div>
