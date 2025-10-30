@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useCalendar } from '../context/CalendarContext';
 import { useTheme } from '../context/ThemeContext';
 import './TodoSidebar.css';
@@ -17,16 +17,26 @@ const TodoSidebar = ({ selectedDate }) => {
   const { isDark } = useTheme();
   const [showForm, setShowForm] = useState(false);
   const [editingTodo, setEditingTodo] = useState(null);
-  const [formData, setFormData] = useState({
+  const titleInputRef = useRef(null);
+
+  const formatDateForInput = (date) => {
+    if (!date) return '';
+    const iso = new Date(date).toISOString();
+    return iso.split('T')[0];
+  };
+
+  const buildDefaultFormState = (date) => ({
     title: '',
     description: '',
-    dueDate: '',
+    dueDate: formatDateForInput(date),
     priority: 'medium',
     category: 'today',
     timeCategory: 'personal',
-    estimatedHours: 1,
-    completionPercentage: 0
+    estimatedHours: '1',
+    completionPercentage: '0'
   });
+
+  const [formData, setFormData] = useState(() => buildDefaultFormState(selectedDate));
 
   const isSameDay = (date1, date2) => {
     // Compare just the date parts, ignoring time
@@ -35,34 +45,37 @@ const TodoSidebar = ({ selectedDate }) => {
     return d1.getTime() === d2.getTime();
   };
 
-  const todaysDate = selectedDate.toISOString().split('T')[0];
+  const todaysDate = formatDateForInput(selectedDate);
+
+  useEffect(() => {
+    if (showForm) {
+      setTimeout(() => {
+        titleInputRef.current?.focus();
+      }, 0);
+    }
+  }, [showForm]);
+
+  useEffect(() => {
+    if (showForm && !editingTodo) {
+      setFormData(prev => ({
+        ...prev,
+        dueDate: formatDateForInput(selectedDate)
+      }));
+    }
+  }, [selectedDate, showForm, editingTodo]);
   
   // Filter todos for selected date
   const todaysTodos = calendarTodos.filter(todo => {
     const todoDate = new Date(todo.dueDate);
-    const matches = isSameDay(todoDate, selectedDate);
-    
-    // More detailed logging
-    console.log(`Todo "${todo.title}"`);
-    console.log(`  - Due Date: ${todo.dueDate}`);
-    console.log(`  - Parsed Todo Date: ${todoDate}`);
-    console.log(`  - Todo Date Components: ${todoDate.getFullYear()}-${todoDate.getMonth()}-${todoDate.getDate()}`);
-    console.log(`  - Selected Date: ${selectedDate}`);
-    console.log(`  - Selected Date Components: ${selectedDate.getFullYear()}-${selectedDate.getMonth()}-${selectedDate.getDate()}`);
-    console.log(`  - Matches: ${matches}`);
-    
-    return matches;
+    return isSameDay(todoDate, selectedDate);
   });
-
-  console.log('All calendarTodos:', calendarTodos);
-  console.log('Filtered todaysTodos:', todaysTodos);
-  console.log('Selected date:', selectedDate);
 
   const handleInputChange = (e) => {
     const { name, value, type } = e.target;
+
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'number' ? parseFloat(value) : value
+      [name]: value
     }));
   };
 
@@ -75,6 +88,9 @@ const TodoSidebar = ({ selectedDate }) => {
       return;
     }
 
+    const parsedEstimated = parseFloat(formData.estimatedHours);
+    const parsedCompletion = parseInt(formData.completionPercentage, 10);
+
     const todoData = {
       title: formData.title.trim(),
       description: formData.description.trim(),
@@ -82,52 +98,26 @@ const TodoSidebar = ({ selectedDate }) => {
       priority: formData.priority,
       category: formData.category,
       timeCategory: formData.timeCategory,
-      estimatedHours: parseFloat(formData.estimatedHours),
-      completionPercentage: parseInt(formData.completionPercentage),
-      isCompleted: parseInt(formData.completionPercentage) === 100
+      estimatedHours: Number.isNaN(parsedEstimated) ? 0 : parsedEstimated,
+      completionPercentage: Number.isNaN(parsedCompletion) ? 0 : parsedCompletion,
+      isCompleted: !Number.isNaN(parsedCompletion) && parsedCompletion === 100
     };
-
-    console.log('Submitting todo data:', todoData);
-    console.log('formData.dueDate:', formData.dueDate);
-    console.log('todaysDate:', todaysDate);
-    console.log('selectedDate:', selectedDate);
 
     let success = false;
     
     if (editingTodo) {
-      console.log('Updating todo:', editingTodo.id);
-      console.log('📝 Update data being sent:', todoData);
       success = await updateCalendarTodo(editingTodo.id, todoData);
-      console.log('📦 Update result received:', success);
     } else {
-      console.log('Creating new todo');
       success = await createCalendarTodo(todoData);
     }
 
-    console.log('Todo operation success:', success);
-
     if (success) {
-      console.log('✅ Form update successful, updated todo:', success);
       resetForm();
-      
-      // Force a small delay to ensure state has updated
-      setTimeout(() => {
-        console.log('� Current todos after update:', calendarTodos.filter(t => t.id === editingTodo?.id));
-      }, 100);
     }
   };
 
   const resetForm = () => {
-    setFormData({
-      title: '',
-      description: '',
-      dueDate: '',
-      priority: 'medium',
-      category: 'today',
-      timeCategory: 'personal',
-      estimatedHours: 1,
-      completionPercentage: 0
-    });
+    setFormData(buildDefaultFormState(selectedDate));
     setShowForm(false);
     setEditingTodo(null);
   };
@@ -140,8 +130,8 @@ const TodoSidebar = ({ selectedDate }) => {
       priority: todo.priority,
       category: todo.category,
       timeCategory: todo.timeCategory,
-      estimatedHours: todo.estimatedHours,
-      completionPercentage: todo.completionPercentage
+      estimatedHours: todo.estimatedHours != null ? String(todo.estimatedHours) : '',
+      completionPercentage: todo.completionPercentage != null ? String(todo.completionPercentage) : '0'
     });
     setEditingTodo(todo);
     setShowForm(true);
@@ -155,22 +145,11 @@ const TodoSidebar = ({ selectedDate }) => {
 
   // New function to handle progress updates
   const handleProgressUpdate = async (todoId, newPercentage) => {
-    console.log('🎯 handleProgressUpdate called:', { todoId, newPercentage });
-    
     const updates = { 
       completionPercentage: newPercentage,
       isCompleted: newPercentage === 100 
     };
-    
-    console.log('📝 Progress updates:', updates);
-    
     const result = await updateCalendarTodo(todoId, updates);
-    
-    if (result) {
-      console.log('✅ Progress update successful:', result);
-    } else {
-      console.error('❌ Progress update failed');
-    }
   };
 
   const getPriorityColor = (priority) => {
@@ -221,7 +200,11 @@ const TodoSidebar = ({ selectedDate }) => {
         </h3>
         <button 
           className="add-todo-btn"
-          onClick={() => setShowForm(true)}
+          onClick={() => {
+            setEditingTodo(null);
+            setFormData(buildDefaultFormState(selectedDate));
+            setShowForm(true);
+          }}
           title="Add new todo"
         >
           + Add Todo
@@ -245,6 +228,7 @@ const TodoSidebar = ({ selectedDate }) => {
               name="title"
               value={formData.title}
               onChange={handleInputChange}
+              ref={titleInputRef}
               placeholder="What needs to be done?"
               required
             />
@@ -382,12 +366,6 @@ const TodoSidebar = ({ selectedDate }) => {
         ) : (
           <div className="todos-container">
             {todaysTodos.map(todo => {
-              console.log('🎯 Rendering todo:', { 
-                id: todo.id, 
-                title: todo.title, 
-                completionPercentage: todo.completionPercentage,
-                dueDate: todo.dueDate 
-              });
               return (
               <div 
                 key={todo.id} 
@@ -442,50 +420,35 @@ const TodoSidebar = ({ selectedDate }) => {
                     <div className="progress-buttons">
                       <button 
                         className={`progress-btn ${todo.completionPercentage === 0 ? 'active' : ''}`}
-                        onClick={() => {
-                          console.log('🔴 0% Button clicked! Todo:', { id: todo.id, title: todo.title });
-                          handleProgressUpdate(todo.id, 0);
-                        }}
+                        onClick={() => handleProgressUpdate(todo.id, 0)}
                         title="Not started"
                       >
                         0%
                       </button>
                       <button 
                         className={`progress-btn ${todo.completionPercentage === 25 ? 'active' : ''}`}
-                        onClick={() => {
-                          console.log('🟠 25% Button clicked! Todo:', { id: todo.id, title: todo.title });
-                          handleProgressUpdate(todo.id, 25);
-                        }}
+                        onClick={() => handleProgressUpdate(todo.id, 25)}
                         title="Started"
                       >
                         25%
                       </button>
                       <button 
                         className={`progress-btn ${todo.completionPercentage === 50 ? 'active' : ''}`}
-                        onClick={() => {
-                          console.log('🟡 50% Button clicked! Todo:', { id: todo.id, title: todo.title });
-                          handleProgressUpdate(todo.id, 50);
-                        }}
+                        onClick={() => handleProgressUpdate(todo.id, 50)}
                         title="Half done"
                       >
                         50%
                       </button>
                       <button 
                         className={`progress-btn ${todo.completionPercentage === 75 ? 'active' : ''}`}
-                        onClick={() => {
-                          console.log('🔵 75% Button clicked! Todo:', { id: todo.id, title: todo.title });
-                          handleProgressUpdate(todo.id, 75);
-                        }}
+                        onClick={() => handleProgressUpdate(todo.id, 75)}
                         title="Almost done"
                       >
                         75%
                       </button>
                       <button 
                         className={`progress-btn complete-btn ${todo.completionPercentage === 100 ? 'active' : ''}`}
-                        onClick={() => {
-                          console.log('🟢 100% Button clicked! Todo:', { id: todo.id, title: todo.title });
-                          handleProgressUpdate(todo.id, 100);
-                        }}
+                        onClick={() => handleProgressUpdate(todo.id, 100)}
                         title="Complete"
                       >
                         ✓ Done

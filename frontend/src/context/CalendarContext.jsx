@@ -10,6 +10,7 @@ const getBaseUrl = () => {
 export function CalendarProvider({ children }) {
   const [calendarTodos, setCalendarTodos] = useState([]);
   const [timeLogs, setTimeLogs] = useState([]);
+  const [calendarTimeLogs, setCalendarTimeLogs] = useState({});
   const [productivityMetrics, setProductivityMetrics] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [viewMode, setViewMode] = useState('month'); // month, week, day
@@ -208,9 +209,70 @@ export function CalendarProvider({ children }) {
       const data = await response.json();
       console.log('Fetched time logs:', data);
       setTimeLogs(data);
+
+      const dateKey = date.toISOString().split('T')[0];
+      setCalendarTimeLogs(prev => ({
+        ...prev,
+        [dateKey]: data
+      }));
       
     } catch (err) {
       console.error('Error fetching time logs:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchTimeLogsForRange = async (startDate, endDate) => {
+    if (!user) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const dateKeys = [];
+      const requests = [];
+
+      const cursor = new Date(startDate);
+      cursor.setHours(0, 0, 0, 0);
+
+      const final = new Date(endDate);
+      final.setHours(23, 59, 59, 999);
+
+      while (cursor <= final) {
+        const key = cursor.toISOString().split('T')[0];
+        dateKeys.push(key);
+        requests.push(
+          fetch(`${API_URL}/time-logs?date=${key}`, {
+            credentials: 'include'
+          })
+        );
+        cursor.setDate(cursor.getDate() + 1);
+      }
+
+      const responses = await Promise.all(requests);
+      const aggregated = {};
+
+      for (let i = 0; i < responses.length; i++) {
+        const response = responses[i];
+        const key = dateKeys[i];
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.message || `Failed to fetch time logs for ${key}`);
+        }
+
+        const logs = await response.json();
+        aggregated[key] = logs;
+      }
+
+      setCalendarTimeLogs(prev => ({
+        ...prev,
+        ...aggregated
+      }));
+    } catch (err) {
+      console.error('Error fetching time logs range:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -247,9 +309,22 @@ export function CalendarProvider({ children }) {
         throw new Error(errorData.message || 'Failed to create time log');
       }
       
-      const newLog = await response.json();
-      console.log('Time log created successfully:', newLog);
-      setTimeLogs(prev => [...prev, newLog]);
+  const newLog = await response.json();
+  console.log('Time log created successfully:', newLog);
+  setTimeLogs(prev => [...prev, newLog]);
+
+      const logDateSource = newLog.date || newLog.startTime || new Date().toISOString();
+      const derivedDate = new Date(logDateSource);
+      const dateKey = Number.isNaN(derivedDate.getTime())
+        ? new Date().toISOString().split('T')[0]
+        : derivedDate.toISOString().split('T')[0];
+      setCalendarTimeLogs(prev => {
+        const existing = prev[dateKey] || [];
+        return {
+          ...prev,
+          [dateKey]: [...existing, newLog]
+        };
+      });
       
       return newLog;
     } catch (err) {
@@ -323,6 +398,8 @@ export function CalendarProvider({ children }) {
       if (viewMode === 'day') {
         fetchTimeLogs(selectedDate);
         fetchProductivityMetrics(selectedDate);
+      } else {
+        fetchTimeLogsForRange(start, end);
       }
     }
   }, [user, selectedDate, viewMode]);
@@ -343,9 +420,11 @@ export function CalendarProvider({ children }) {
       updateCalendarTodo,
       deleteCalendarTodo,
       fetchTimeLogs,
+      fetchTimeLogsForRange,
       createTimeLog,
       fetchProductivityMetrics,
-      getDateRange
+      getDateRange,
+      calendarTimeLogs
     }}>
       {children}
     </CalendarContext.Provider>

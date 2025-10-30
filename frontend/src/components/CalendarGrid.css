@@ -73,10 +73,12 @@
   transition: all 0.2s ease;
   display: flex;
   flex-direction: column;
+  gap: 0.4rem;
   border-radius: 0.85rem;
   position: relative;
   border: 1px solid transparent;
   box-shadow: inset 0 1px rgba(255, 255, 255, 0.04);
+  min-height: 0;
 }
 
 .calendar-day:hover {
@@ -104,52 +106,207 @@
   opacity: 0.5;
 }
 
+.day-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
 .day-number {
   font-weight: 600;
   font-size: 1rem;
-  margin-bottom: 0.25rem;
+}
+
+.day-count {
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(59, 130, 246, 0.12);
+  color: var(--primary-color);
+  font-size: 0.7rem;
+  font-weight: 600;
 }
 
 .day-todos {
-  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.35rem;
+  overflow: hidden;
 }
 
-.todo-count {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  margin-bottom: 0.25rem;
-}
-
-.todo-indicators {
+.day-todo-chip {
   display: flex;
-  flex-wrap: wrap;
-  gap: 2px;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.45rem;
+  border-radius: 0.6rem;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  background: rgba(148, 163, 184, 0.12);
+  color: var(--text-color);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  min-height: 1.75rem;
+  transition: transform 0.2s ease;
 }
 
-.todo-indicator {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  opacity: 0.8;
+.day-todo-chip:hover {
+  transform: translateX(2px);
 }
 
-.todo-indicator.priority-urgent { background: #ff4757; }
-.todo-indicator.priority-high { background: #ff7675; }
-.todo-indicator.priority-medium { background: #74b9ff; }
-.todo-indicator.priority-low { background: #81ecec; }
-
-.todo-indicator.completed {
-  opacity: 0.4;
-  background: var(--success-color) !important;
+.day-todo-chip.completed {
+  opacity: 0.65;
 }
 
-.more-todos {
-  font-size: 0.625rem;
+.day-todo-chip .chip-time {
+  font-weight: 600;
+  font-size: 0.7rem;
   color: var(--text-secondary);
-  margin-top: 0.125rem;
+}
+
+.day-todo-chip .chip-title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.day-todo-chip.priority-urgent {
+  background: rgba(239, 68, 68, 0.16);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.day-todo-chip.priority-high {
+  background: rgba(249, 115, 22, 0.18);
+  border-color: rgba(249, 115, 22, 0.28);
+}
+
+.day-todo-chip.priority-medium {
+  background: rgba(37, 99, 235, 0.14);
+  border-color: rgba(37, 99, 235, 0.28);
+}
+
+.day-todo-chip.priority-low {
+  background: rgba(16, 185, 129, 0.14);
+  border-color: rgba(16, 185, 129, 0.28);
+}
+
+.day-log-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.45rem;
+  border-radius: 0.6rem;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  background: rgba(59, 130, 246, 0.14);
+  color: var(--text-color);
+  border: 1px solid rgba(59, 130, 246, 0.22);
+  min-height: 1.75rem;
+  transition: transform 0.2s ease;
+}
+
+.day-log-chip .chip-time {
+  font-weight: 600;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}
+
+.day-log-chip .chip-title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.day-log-chip.category-deepwork,
+.day-log-chip.category-deep-work {
+  background: rgba(99, 102, 241, 0.16);
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+.day-log-chip.category-meeting {
+  background: rgba(244, 114, 182, 0.16);
+  border-color: rgba(244, 114, 182, 0.3);
+}
+
+.day-log-chip.category-break,
+.day-log-chip.category-rest {
+  background: rgba(45, 212, 191, 0.16);
+  border-color: rgba(45, 212, 191, 0.28);
+}
+
+.day-log-chip.category-learning {
+  background: rgba(14, 165, 233, 0.16);
+  border-color: rgba(14, 165, 233, 0.28);
+}
+
+.day-log-chip.category-exercise {
+  background: rgba(250, 204, 21, 0.18);
+  border-color: rgba(250, 204, 21, 0.32);
+}
+
+.day-log-chip.category-focus,
+.day-log-chip.category-planning,
+.day-log-chip.category-admin {
+  background: rgba(96, 165, 250, 0.16);
+  border-color: rgba(96, 165, 250, 0.28);
+}
+
+.day-log-chip.category-personal,
+.day-log-chip.category-life,
+.day-log-chip.category-family {
+  background: rgba(248, 113, 113, 0.14);
+  border-color: rgba(248, 113, 113, 0.28);
+}
+
+.day-log-chip.category-other {
+  background: rgba(148, 163, 184, 0.14);
+  border-color: rgba(148, 163, 184, 0.26);
+}
+.week-log.category-focus,
+.time-log-block.category-focus,
+.day-log-card.category-focus {
+  border-left-color: #60a5fa;
+}
+
+.week-log.category-planning,
+.time-log-block.category-planning,
+.day-log-card.category-planning {
+  border-left-color: #4ade80;
+}
+
+.week-log.category-admin,
+.time-log-block.category-admin,
+.day-log-card.category-admin {
+  border-left-color: #f97316;
+}
+
+.week-log.category-personal,
+.week-log.category-life,
+.week-log.category-family,
+.time-log-block.category-personal,
+.time-log-block.category-life,
+.time-log-block.category-family,
+.day-log-card.category-personal,
+.day-log-card.category-life,
+.day-log-card.category-family {
+  border-left-color: #f87171;
+}
+
+.more-todos-chip {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--primary-color);
+  padding: 0.25rem 0.45rem;
+  border-radius: 0.55rem;
+  align-self: flex-start;
+  background: rgba(37, 99, 235, 0.12);
+}
+.more-logs {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--primary-color);
+  margin-top: 0.1rem;
 }
 
 /* Productivity levels */
@@ -262,15 +419,19 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.6rem;
 }
 
 .week-todo {
-  padding: 0.5rem;
-  border-radius: 0.375rem;
-  background: var(--bg-secondary);
-  border-left: 3px solid;
-  font-size: 0.875rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.6rem;
+  background: rgba(148, 163, 184, 0.12);
+  border-left: 4px solid;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  font-size: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
 }
 
 .week-todo.priority-urgent { border-left-color: #ff4757; }
@@ -283,10 +444,101 @@
   text-decoration: line-through;
 }
 
-.todo-title {
-  font-weight: 500;
-  margin-bottom: 0.25rem;
-  line-height: 1.2;
+.more-todos {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.week-logs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.week-log {
+  padding: 0.4rem 0.5rem;
+  border-radius: 0.5rem;
+  background: rgba(148, 163, 184, 0.12);
+  border-left: 3px solid;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  font-size: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.week-log-time {
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.week-log-title {
+  color: var(--text-color);
+  line-height: 1.25;
+}
+
+.week-log.category-deepwork,
+.week-log.category-deep-work,
+.time-log-block.category-deepwork,
+.time-log-block.category-deep-work,
+.day-log-card.category-deepwork,
+.day-log-card.category-deep-work {
+  border-left-color: #6366f1;
+}
+
+.week-log.category-meeting,
+.time-log-block.category-meeting,
+.day-log-card.category-meeting {
+  border-left-color: #f472b6;
+}
+
+.week-log.category-break,
+.week-log.category-rest,
+.time-log-block.category-break,
+.time-log-block.category-rest,
+.day-log-card.category-break,
+.day-log-card.category-rest {
+  border-left-color: #2dd4bf;
+}
+
+.week-log.category-learning,
+.time-log-block.category-learning,
+.day-log-card.category-learning {
+  border-left-color: #0ea5e9;
+}
+
+.week-log.category-exercise,
+.time-log-block.category-exercise,
+.day-log-card.category-exercise {
+  border-left-color: #facc15;
+}
+
+.week-log.category-other,
+.time-log-block.category-other,
+.day-log-card.category-other {
+  border-left-color: #94a3b8;
+}
+
+.week-todo-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.week-todo-header .todo-time {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.week-todo-header .todo-title {
+  flex: 1;
+  font-weight: 600;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .todo-progress {
@@ -365,6 +617,30 @@
   background: var(--card-bg);
 }
 
+.time-log-block {
+  margin-bottom: 0.4rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: 0.5rem;
+  background: rgba(148, 163, 184, 0.12);
+  border-left: 3px solid var(--primary-color);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.time-log-range {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.time-log-activity {
+  font-size: 0.85rem;
+  color: var(--text-color);
+  line-height: 1.3;
+}
+
 .time-block-placeholder {
   height: 100%;
   background: transparent;
@@ -385,6 +661,88 @@
   font-size: 1.25rem;
   font-weight: 600;
   color: var(--text-color);
+}
+
+.day-time-logs {
+  padding: 1.5rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.day-time-logs h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.time-logs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.day-log-card {
+  padding: 1rem;
+  border-radius: 0.65rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-left: 4px solid var(--primary-color);
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  transition: all 0.2s ease;
+}
+
+.day-log-card:hover {
+  background: var(--hover-color);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.log-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.log-card-range {
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.log-linked-tag {
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(59, 130, 246, 0.18);
+  color: var(--primary-color);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.log-card-activity {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-color);
+  line-height: 1.4;
+}
+
+.log-card-meta {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  text-transform: capitalize;
+}
+
+.log-card-category {
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.16);
+  border: 1px solid rgba(148, 163, 184, 0.24);
 }
 
 .no-todos {
