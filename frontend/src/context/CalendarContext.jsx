@@ -1,4 +1,4 @@
-import { createContext, useState, useContext, useEffect } from 'react';
+import { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 
 const CalendarContext = createContext();
@@ -11,11 +11,14 @@ export function CalendarProvider({ children }) {
   const [calendarTodos, setCalendarTodos] = useState([]);
   const [timeLogs, setTimeLogs] = useState([]);
   const [calendarTimeLogs, setCalendarTimeLogs] = useState({});
+  const [dailyDiaries, setDailyDiaries] = useState({});
   const [productivityMetrics, setProductivityMetrics] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [viewMode, setViewMode] = useState('month'); // month, week, day
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [diaryLoading, setDiaryLoading] = useState(false);
+  const [diaryError, setDiaryError] = useState(null);
   const { user } = useAuth();
 
   const API_URL = getBaseUrl();
@@ -387,6 +390,49 @@ export function CalendarProvider({ children }) {
     return { start, end };
   };
 
+  const getDateKey = (date) => {
+    const normalized = new Date(date);
+    normalized.setUTCHours(0, 0, 0, 0);
+    return normalized.toISOString().split('T')[0];
+  };
+
+  const fetchDiaryEntry = useCallback(async (date) => {
+    if (!user || !date) return null;
+
+    const dateKey = getDateKey(date);
+
+    if (dailyDiaries[dateKey]) {
+      return dailyDiaries[dateKey];
+    }
+
+    setDiaryLoading(true);
+    setDiaryError(null);
+    try {
+      const response = await fetch(`${API_URL}/daily-diary?date=${dateKey}`, {
+        credentials: 'include'
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to fetch diary entry');
+      }
+
+      setDailyDiaries(prev => ({
+        ...prev,
+        [dateKey]: data
+      }));
+
+      return data;
+    } catch (err) {
+      console.error('Error fetching diary entry:', err);
+      setDiaryError(err.message);
+      throw err;
+    } finally {
+      setDiaryLoading(false);
+    }
+  }, [user, API_URL, dailyDiaries]);
+
   // Load data when date or view mode changes
   useEffect(() => {
     console.log('CalendarContext useEffect triggered - User:', !!user, 'SelectedDate:', selectedDate, 'ViewMode:', viewMode);
@@ -398,16 +444,59 @@ export function CalendarProvider({ children }) {
       if (viewMode === 'day') {
         fetchTimeLogs(selectedDate);
         fetchProductivityMetrics(selectedDate);
+        fetchDiaryEntry(selectedDate).catch(() => {});
       } else {
         fetchTimeLogsForRange(start, end);
       }
     }
-  }, [user, selectedDate, viewMode]);
+  }, [user, selectedDate, viewMode, fetchDiaryEntry]);
+
+  const saveDiaryEntry = useCallback(async (date, content) => {
+    if (!user || !date) return null;
+
+    const dateKey = getDateKey(date);
+
+    setDiaryLoading(true);
+    setDiaryError(null);
+    try {
+      const response = await fetch(`${API_URL}/daily-diary`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          date: new Date(date).toISOString(),
+          content
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to save diary entry');
+      }
+
+      setDailyDiaries(prev => ({
+        ...prev,
+        [dateKey]: data
+      }));
+
+      return data;
+    } catch (err) {
+      console.error('Error saving diary entry:', err);
+      setDiaryError(err.message);
+      throw err;
+    } finally {
+      setDiaryLoading(false);
+    }
+  }, [user, API_URL]);
 
   return (
     <CalendarContext.Provider value={{
       calendarTodos,
       timeLogs,
+      dailyDiaries,
       productivityMetrics,
       selectedDate,
       setSelectedDate,
@@ -424,7 +513,11 @@ export function CalendarProvider({ children }) {
       createTimeLog,
       fetchProductivityMetrics,
       getDateRange,
-      calendarTimeLogs
+      calendarTimeLogs,
+      fetchDiaryEntry,
+      saveDiaryEntry,
+      diaryLoading,
+      diaryError
     }}>
       {children}
     </CalendarContext.Provider>

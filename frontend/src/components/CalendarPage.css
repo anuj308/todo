@@ -84,6 +84,18 @@
   box-shadow: 0 16px 32px rgba(37, 99, 235, 0.22);
 }
 
+.quick-btn.secondary {
+  background: rgba(37, 99, 235, 0.14);
+  color: var(--primary-color);
+  border: 1px solid rgba(37, 99, 235, 0.24);
+}
+
+.quick-btn.secondary:hover {
+  background: rgba(37, 99, 235, 0.22);
+  color: var(--primary-hover);
+  box-shadow: none;
+}
+
 .banner {
   margin: 0.75rem 2rem 0;
   padding: 0.75rem 1.25rem;
@@ -207,6 +219,86 @@
   min-height: calc(100vh - 220px);
   overflow-y: auto;
   overflow-x: hidden;
+}
+
+.day-diary-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 18px 32px rgba(15, 23, 42, 0.08);
+}
+
+.day-diary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.day-diary-header h2 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.day-diary-header p {
+  margin: 0.2rem 0 0 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.day-diary-body {
+  background: rgba(148, 163, 184, 0.08);
+  border-radius: 0.85rem;
+  padding: 1.1rem 1.25rem;
+  min-height: 120px;
+  color: var(--text-color);
+  line-height: 1.55;
+}
+
+.day-diary-body p {
+  margin: 0;
+}
+
+.diary-placeholder {
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.diary-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.diary-modal textarea {
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  padding: 1rem;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  background: rgba(255, 255, 255, 0.95);
+  color: inherit;
+}
+
+.diary-modal textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.18);
+}
+
+.diary-alert {
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.6rem;
+  background: var(--error-bg);
+  color: var(--error-color);
+  border: 1px solid var(--error-border);
+  font-size: 0.85rem;
 }
 
 .calendar-main .calendar-grid {
@@ -353,6 +445,10 @@
   .calendar-main {
     margin: 1rem 1.25rem 1.5rem;
     min-height: auto;
+  }
+
+  .day-diary-header {
+    align-items: flex-start;
   }
 
   .calendar-sidebar {

@@ -46,6 +46,13 @@ function formatDateTimeInput(date, timeFallback = '09:00') {
   return `${isoDate}T${timeFallback}`;
 }
 
+function getDateKey(date) {
+  if (!date) return '';
+  const normalized = new Date(date);
+  normalized.setUTCHours(0, 0, 0, 0);
+  return normalized.toISOString().split('T')[0];
+}
+
 function formatDurationLabel(minutes) {
   if (!minutes) return '0m';
   const hrs = Math.floor(minutes / 60);
@@ -65,7 +72,12 @@ const CalendarPage = () => {
     error,
     createCalendarTodo,
     createTimeLog,
-    updateCalendarTodo
+    updateCalendarTodo,
+    dailyDiaries,
+    fetchDiaryEntry,
+    saveDiaryEntry,
+    diaryLoading,
+    diaryError
   } = useCalendar();
 
   const { isDark } = useTheme();
@@ -78,6 +90,10 @@ const CalendarPage = () => {
   const [logSaving, setLogSaving] = useState(false);
   const [detailSaving, setDetailSaving] = useState(false);
   const [todoProgress, setTodoProgress] = useState(0);
+  const [diaryModalOpen, setDiaryModalOpen] = useState(false);
+  const [diaryContent, setDiaryContent] = useState('');
+  const [diarySaving, setDiarySaving] = useState(false);
+  const [diaryAlert, setDiaryAlert] = useState(null);
 
   const handleDateSelect = (date) => {
     setSelectedDate(date);
@@ -135,6 +151,32 @@ const CalendarPage = () => {
       setTodoProgress(selectedEvent.data.completionPercentage ?? 0);
     }
   }, [selectedEvent]);
+
+  useEffect(() => {
+    if (!diaryModalOpen) return;
+
+    let isActive = true;
+
+    const loadDiary = async () => {
+      try {
+        const entry = await fetchDiaryEntry(selectedDate);
+        if (isActive) {
+          setDiaryContent(entry?.content || '');
+          setDiaryAlert(null);
+        }
+      } catch (err) {
+        if (isActive) {
+          setDiaryAlert(err.message);
+        }
+      }
+    };
+
+    loadDiary();
+
+    return () => {
+      isActive = false;
+    };
+  }, [diaryModalOpen, selectedDate, fetchDiaryEntry]);
 
   const handleTodoFormChange = (event) => {
     const { name, value } = event.target;
@@ -240,6 +282,30 @@ const CalendarPage = () => {
   const closeDetailModal = () => {
     setSelectedEvent(null);
     setTodoProgress(0);
+  };
+
+  const handleOpenDiary = () => {
+    setDiaryAlert(null);
+    setDiaryContent('');
+    setDiaryModalOpen(true);
+  };
+
+  const handleDiarySave = async () => {
+    setDiarySaving(true);
+    setDiaryAlert(null);
+    try {
+      await saveDiaryEntry(selectedDate, diaryContent);
+      setDiaryModalOpen(false);
+    } catch (err) {
+      setDiaryAlert(err.message);
+    } finally {
+      setDiarySaving(false);
+    }
+  };
+
+  const closeDiaryModal = () => {
+    setDiaryModalOpen(false);
+    setDiaryAlert(null);
   };
 
   const renderCreateTodoModal = () => {
@@ -607,11 +673,16 @@ const CalendarPage = () => {
           <button className="quick-btn" onClick={() => setCreateModalType('log')}>
             + Add Time Log
           </button>
+          <button className="quick-btn secondary" onClick={handleOpenDiary}>
+            Daily Diary
+          </button>
         </div>
       </div>
 
       {loading && <div className="banner loading">Loading…</div>}
-      {error && <div className="banner error">{error}</div>}
+      {(error || diaryError) && (
+        <div className="banner error">{error || diaryError}</div>
+      )}
 
       <div className="calendar-main">
         <CalendarGrid
@@ -621,11 +692,56 @@ const CalendarPage = () => {
           filterMode={filterMode}
           onEventSelect={handleEventSelect}
         />
+
+        {viewMode === 'day' && (
+          <section className="day-diary-card">
+            <header className="day-diary-header">
+              <div>
+                <h2>Daily diary</h2>
+                <p>Capture how the day felt, wins, lessons, anything.</p>
+              </div>
+              <button className="quick-btn secondary" onClick={handleOpenDiary}>
+                {diaryLoading ? 'Loading…' : 'Open diary'}
+              </button>
+            </header>
+            <div className="day-diary-body">
+              {(() => {
+                const entryKey = getDateKey(selectedDate);
+                const entry = dailyDiaries?.[entryKey];
+                if (entry?.content) {
+                  return <p>{entry.content.slice(0, 400)}{entry.content.length > 400 ? '…' : ''}</p>;
+                }
+                return <p className="diary-placeholder">No notes yet for this day.</p>;
+              })()}
+            </div>
+          </section>
+        )}
       </div>
 
       {renderCreateTodoModal()}
       {renderCreateLogModal()}
       {renderDetailModal()}
+      {diaryModalOpen && (
+        <Modal title={`Daily Diary — ${formatDateForHeader(selectedDate)}`} onClose={closeDiaryModal}>
+          <div className="diary-modal">
+            <textarea
+              value={diaryContent}
+              onChange={(event) => setDiaryContent(event.target.value)}
+              rows={12}
+              placeholder="How did today go? What do you want to remember?"
+            />
+            {diaryAlert && <div className="diary-alert">{diaryAlert}</div>}
+            <div className="modal-actions">
+              <button type="button" className="secondary" onClick={closeDiaryModal}>
+                Cancel
+              </button>
+              <button type="button" onClick={handleDiarySave} disabled={diarySaving}>
+                {diarySaving ? 'Saving…' : 'Save entry'}
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };

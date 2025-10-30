@@ -10,6 +10,7 @@ import folderRoutes from './routes/folderRoutes.js'; // Import folder routes
 import calendarTodoRoutes from './routes/calendarTodoRoutes.js'; // Import calendar todo routes
 import timeLogRoutes from './routes/timeLogRoutes.js'; // Import time log routes
 import productivityRoutes from './routes/productivityRoutes.js'; // Import productivity routes
+import dailyDiaryRoutes from './routes/dailyDiaryRoutes.js';
 
 console.log('Server starting up - this is a test log'); // Test log
 
@@ -39,6 +40,7 @@ app.use('/api/folders', folderRoutes); // Add folder routes
 app.use('/api/calendar-todos', calendarTodoRoutes); // Add calendar todo routes
 app.use('/api/time-logs', timeLogRoutes); // Add time log routes
 app.use('/api/productivity-metrics', productivityRoutes); // Add productivity routes
+app.use('/api/daily-diary', dailyDiaryRoutes);
 
 // 404 handler for API routes
 app.all('/api/*', (req, res) => {

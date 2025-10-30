@@ -252,8 +252,18 @@
   border-color: rgba(148, 163, 184, 0.45);
 }
 
+.calendar-page.dark .diary-modal textarea {
+  background: rgba(15, 23, 42, 0.65);
+  color: #f8fafc;
+  border-color: rgba(148, 163, 184, 0.45);
+}
+
 .calendar-page.dark .quick-form input::placeholder,
 .calendar-page.dark .quick-form textarea::placeholder {
+  color: rgba(203, 213, 225, 0.8);
+}
+
+.calendar-page.dark .diary-modal textarea::placeholder {
   color: rgba(203, 213, 225, 0.8);
 }
 
