@@ -6,6 +6,8 @@ import TodoList from './components/TodoList';
 import TodoForm from './components/TodoForm';
 import CalendarPage from './components/CalendarPage';
 import DiaryPage from './components/DiaryPage';
+import AnalyticsPage from './components/AnalyticsPage';
+import ProjectsPage from './components/ProjectsPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import RedirectIfAuthenticated from './components/RedirectIfAuthenticated';
 import Navbar from './components/Navbar';
@@ -69,6 +71,22 @@ const App = () => {
                                         element={
                                             <ProtectedRoute>
                                                 <DiaryPage />
+                                            </ProtectedRoute>
+                                        } 
+                                    />
+                                    <Route 
+                                        path="/analytics" 
+                                        element={
+                                            <ProtectedRoute>
+                                                <AnalyticsPage />
+                                            </ProtectedRoute>
+                                        } 
+                                    />
+                                    <Route 
+                                        path="/projects" 
+                                        element={
+                                            <ProtectedRoute>
+                                                <ProjectsPage />
                                             </ProtectedRoute>
                                         } 
                                     />

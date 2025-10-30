@@ -11,6 +11,7 @@ import calendarTodoRoutes from './routes/calendarTodoRoutes.js'; // Import calen
 import timeLogRoutes from './routes/timeLogRoutes.js'; // Import time log routes
 import productivityRoutes from './routes/productivityRoutes.js'; // Import productivity routes
 import dailyDiaryRoutes from './routes/dailyDiaryRoutes.js';
+import projectRoutes from './routes/projectRoutes.js'; // Import project routes
 
 console.log('Server starting up - this is a test log'); // Test log
 
@@ -41,6 +42,7 @@ app.use('/api/calendar-todos', calendarTodoRoutes); // Add calendar todo routes
 app.use('/api/time-logs', timeLogRoutes); // Add time log routes
 app.use('/api/productivity-metrics', productivityRoutes); // Add productivity routes
 app.use('/api/daily-diary', dailyDiaryRoutes);
+app.use('/api/projects', projectRoutes); // Add project routes
 
 // 404 handler for API routes
 app.all('/api/*', (req, res) => {

@@ -83,6 +83,12 @@ const calendarTodoSchema = new mongoose.Schema({
     isCompleted: { type: Boolean, default: false },
     completionPercentage: { type: Number, default: 0, min: 0, max: 100 }
   }],
+  projectId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Project',
+    default: null,
+    index: true
+  },
   userId: {
     type: String,
     required: true,

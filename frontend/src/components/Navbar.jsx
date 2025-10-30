@@ -36,6 +36,8 @@ const Navbar = () => {
           <Link to="/notes" className="nav-link">Notes</Link>
           <Link to="/calendar" className="nav-link">Calendar</Link>
           <Link to="/diary" className="nav-link">Diary</Link>
+          <Link to="/projects" className="nav-link">Projects</Link>
+          <Link to="/analytics" className="nav-link">Analytics</Link>
         </div>
         <div className="nav-auth">
           <button 
