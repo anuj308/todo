@@ -12,6 +12,8 @@ const AnalyticsPage = () => {
     fetchProductivityMetrics,
     selectedDate,
     setSelectedDate,
+    fetchCalendarTodos,
+    fetchTimeLogsForRange,
     loading 
   } = useCalendar();
   
@@ -19,36 +21,64 @@ const AnalyticsPage = () => {
   const navigate = useNavigate();
   const [viewPeriod, setViewPeriod] = useState('day'); // day, week, month
   const [dateRange, setDateRange] = useState({ start: new Date(), end: new Date() });
+  const [dataLoading, setDataLoading] = useState(true);
 
   useEffect(() => {
     updateDateRange(viewPeriod);
   }, [viewPeriod, selectedDate]);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      setDataLoading(true);
+      try {
+        await Promise.all([
+          fetchCalendarTodos(dateRange.start, dateRange.end),
+          fetchTimeLogsForRange(dateRange.start, dateRange.end)
+        ]);
+      } catch (err) {
+        console.error('Error fetching analytics data:', err);
+      } finally {
+        setDataLoading(false);
+      }
+    };
+
+    if (dateRange.start && dateRange.end) {
+      fetchData();
+    }
+  }, [dateRange.start?.getTime(), dateRange.end?.getTime()]);
+
   const updateDateRange = (period) => {
     const end = new Date(selectedDate);
+    end.setHours(23, 59, 59, 999);
     const start = new Date(selectedDate);
+    start.setHours(0, 0, 0, 0);
     
     if (period === 'week') {
       start.setDate(start.getDate() - 6);
     } else if (period === 'month') {
-      start.setMonth(start.getMonth() - 1);
+      start.setDate(start.getDate() - 29);
     }
     
+    console.log('Date range updated:', { period, start, end });
     setDateRange({ start, end });
   };
 
   const getFilteredTodos = () => {
-    return calendarTodos.filter(todo => {
+    const filtered = calendarTodos.filter(todo => {
       const todoDate = new Date(todo.dueDate);
       return todoDate >= dateRange.start && todoDate <= dateRange.end;
     });
+    console.log('Filtered todos:', filtered, 'from', calendarTodos.length, 'total');
+    return filtered;
   };
 
   const getFilteredTimeLogs = () => {
-    return timeLogs.filter(log => {
+    const filtered = timeLogs.filter(log => {
       const logDate = new Date(log.date || log.startTime);
       return logDate >= dateRange.start && logDate <= dateRange.end;
     });
+    console.log('Filtered time logs:', filtered, 'from', timeLogs.length, 'total');
+    return filtered;
   };
 
   const calculateTodoStats = () => {
@@ -127,6 +157,14 @@ const AnalyticsPage = () => {
     navigate('/calendar');
   };
 
+  if (dataLoading || loading) {
+    return (
+      <div className={`analytics-page ${isDark ? 'dark' : 'light'}`}>
+        <div className="loading-page">Loading analytics data...</div>
+      </div>
+    );
+  }
+
   return (
     <div className={`analytics-page ${isDark ? 'dark' : 'light'}`}>
       {/* Header */}
@@ -175,8 +213,21 @@ const AnalyticsPage = () => {
 
       {/* Main Content */}
       <div className="analytics-content">
+        {/* Empty State */}
+        {todoStats.total === 0 && timeLogStats.logsCount === 0 && (
+          <div className="empty-analytics">
+            <span className="empty-icon">📊</span>
+            <h3>No data available</h3>
+            <p>Start by adding todos and logging time in the calendar to see your analytics here.</p>
+            <button className="calendar-link-btn" onClick={navigateToCalendar}>
+              Go to Calendar
+            </button>
+          </div>
+        )}
+
         {/* Todo Statistics Section */}
-        <section className="analytics-section">
+        {todoStats.total > 0 && (
+          <section className="analytics-section">
           <div className="section-header">
             <h2>✅ Todo Completion</h2>
             <span className="section-count">{todoStats.total} total</span>
@@ -246,9 +297,11 @@ const AnalyticsPage = () => {
             </div>
           </div>
         </section>
+        )}
 
         {/* Time Log Statistics Section */}
-        <section className="analytics-section">
+        {timeLogStats.logsCount > 0 && (
+          <section className="analytics-section">
           <div className="section-header">
             <h2>⏰ Time Tracking</h2>
             <span className="section-count">{timeLogStats.logsCount} logs</span>
@@ -322,9 +375,11 @@ const AnalyticsPage = () => {
             </div>
           )}
         </section>
+        )}
 
         {/* Insights Section */}
-        <section className="analytics-section insights-section">
+        {(todoStats.total > 0 || timeLogStats.logsCount > 0) && (
+          <section className="analytics-section insights-section">
           <div className="section-header">
             <h2>💡 Insights</h2>
           </div>
@@ -381,6 +436,7 @@ const AnalyticsPage = () => {
             )}
           </div>
         </section>
+        )}
       </div>
     </div>
   );
