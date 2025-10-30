@@ -80,6 +80,23 @@ export const createTimeLog = async (req, res) => {
     console.log('End time type:', typeof logData.endTime, logData.endTime);
     console.log('Duration from frontend:', logData.duration);
 
+    if (!logData.date && logData.startTime) {
+      const derivedFromStart = new Date(logData.startTime);
+      if (!Number.isNaN(derivedFromStart.getTime())) {
+        derivedFromStart.setUTCHours(0, 0, 0, 0);
+        logData.date = derivedFromStart;
+        console.log('Derived date from start time:', logData.date);
+      }
+    }
+
+    if (logData.date && !(logData.date instanceof Date)) {
+      const normalizedDate = new Date(logData.date);
+      if (!Number.isNaN(normalizedDate.getTime())) {
+        normalizedDate.setUTCHours(0, 0, 0, 0);
+        logData.date = normalizedDate;
+      }
+    }
+
     // Validate required fields
     if (!logData.date || !logData.startTime || !logData.endTime || !logData.category || !logData.activity) {
       return res.status(400).json({ 

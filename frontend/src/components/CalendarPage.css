@@ -20,6 +20,88 @@
   box-shadow: 0 2px 4px rgba(15, 23, 42, 0.12);
 }
 
+.calendar-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1rem 2rem 0;
+  box-sizing: border-box;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--bg-secondary);
+  padding: 0.4rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border-color);
+}
+
+.filter-btn {
+  padding: 0.5rem 0.9rem;
+  border: none;
+  background: transparent;
+  color: var(--text-color);
+  border-radius: 0.65rem;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.filter-btn:hover {
+  background: var(--hover-color);
+}
+
+.filter-btn.active {
+  background: var(--primary-color);
+  color: #fff;
+  box-shadow: 0 12px 24px rgba(37, 99, 235, 0.25);
+}
+
+.quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.quick-btn {
+  padding: 0.6rem 1.2rem;
+  border-radius: 0.8rem;
+  border: none;
+  background: var(--primary-color);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.quick-btn:hover {
+  transform: translateY(-1px);
+  background: var(--primary-hover);
+  box-shadow: 0 16px 32px rgba(37, 99, 235, 0.22);
+}
+
+.banner {
+  margin: 0.75rem 2rem 0;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.75rem;
+  font-weight: 500;
+}
+
+.banner.loading {
+  background: rgba(37, 99, 235, 0.12);
+  color: var(--primary-color);
+}
+
+.banner.error {
+  background: var(--error-bg);
+  color: var(--error-color);
+  border: 1px solid var(--error-border);
+}
+
 .calendar-title h1 {
   margin: 0;
   font-size: 2rem;
@@ -116,6 +198,7 @@
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+  margin: 1.25rem 2rem 2rem;
   padding: 1.25rem 1.5rem;
   background: var(--card-bg);
   border-radius: 1.25rem;
@@ -228,6 +311,10 @@
     padding: 1.5rem;
   }
 
+  .calendar-actions {
+    padding: 1rem 1.5rem 0;
+  }
+
   .calendar-sidebar {
     order: -1;
   }
@@ -239,6 +326,18 @@
     gap: 0.75rem;
   }
 
+  .calendar-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.85rem;
+    padding: 1rem 1.25rem 0;
+  }
+
+  .filter-group,
+  .quick-actions {
+    justify-content: center;
+  }
+
   .view-mode-switcher,
   .date-navigation {
     width: 100%;
@@ -248,6 +347,10 @@
   .calendar-content {
     padding: 1.25rem 1.5rem 1.5rem;
     gap: 1.25rem;
+  }
+
+  .calendar-main {
+    margin: 1rem 1.25rem 1.5rem;
   }
 
   .calendar-sidebar {
@@ -269,6 +372,10 @@
   .today-btn {
     padding: 0.45rem 0.85rem;
     font-size: 0.9rem;
+  }
+
+  .calendar-main {
+    margin: 1rem;
   }
 }
 

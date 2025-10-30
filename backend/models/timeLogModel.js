@@ -20,7 +20,24 @@ const timeLogSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    enum: ['work', 'study', 'exercise', 'sleep', 'meal', 'social', 'entertainment', 'commute', 'shopping', 'chores', 'break', 'other'],
+    enum: [
+      'work',
+      'study',
+      'exercise',
+      'sleep',
+      'meal',
+      'social',
+      'entertainment',
+      'commute',
+      'shopping',
+      'chores',
+      'break',
+      'deepwork',
+      'meeting',
+      'learning',
+      'personal',
+      'other'
+    ],
     required: [true, 'Category is required'],
     index: true
   },

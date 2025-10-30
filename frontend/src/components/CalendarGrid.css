@@ -245,6 +245,26 @@
   border-color: rgba(250, 204, 21, 0.32);
 }
 
+.day-log-chip.category-work {
+  background: rgba(96, 165, 250, 0.18);
+  border-color: rgba(96, 165, 250, 0.32);
+}
+
+.day-log-chip.category-study {
+  background: rgba(14, 165, 233, 0.18);
+  border-color: rgba(14, 165, 233, 0.32);
+}
+
+.day-log-chip.category-social {
+  background: rgba(129, 140, 248, 0.18);
+  border-color: rgba(129, 140, 248, 0.32);
+}
+
+.day-log-chip.category-chores {
+  background: rgba(96, 165, 250, 0.12);
+  border-color: rgba(96, 165, 250, 0.24);
+}
+
 .day-log-chip.category-focus,
 .day-log-chip.category-planning,
 .day-log-chip.category-admin {
@@ -279,6 +299,33 @@
 .time-log-block.category-admin,
 .day-log-card.category-admin {
   border-left-color: #f97316;
+}
+
+.week-log.category-work,
+.time-log-block.category-work,
+.day-log-card.category-work {
+  border-left-color: #60a5fa;
+}
+
+.week-log.category-study,
+.week-log.category-learning,
+.time-log-block.category-study,
+.time-log-block.category-learning,
+.day-log-card.category-study,
+.day-log-card.category-learning {
+  border-left-color: #0ea5e9;
+}
+
+.week-log.category-social,
+.time-log-block.category-social,
+.day-log-card.category-social {
+  border-left-color: #818cf8;
+}
+
+.week-log.category-chores,
+.time-log-block.category-chores,
+.day-log-card.category-chores {
+  border-left-color: #3b82f6;
 }
 
 .week-log.category-personal,
