@@ -147,3 +147,52 @@ export const logoutUser = async (req, res) => {
   });
   res.status(200).json({ message: 'User logged out successfully' });
 };
+
+// @desc    Change user password
+// @route   PUT /api/users/change-password
+// @access  Private
+export const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    // Validation
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ 
+        message: 'Please provide current password and new password' 
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ 
+        message: 'New password must be at least 6 characters' 
+      });
+    }
+
+    // Get user with password field
+    const user = await User.findById(req.user.id).select('+password');
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Verify current password
+    const isMatch = await user.matchPassword(currentPassword);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Current password is incorrect' });
+    }
+
+    // Update password
+    user.password = newPassword;
+    await user.save();
+
+    res.status(200).json({ 
+      message: 'Password changed successfully' 
+    });
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({ 
+      message: 'Server error', 
+      error: error.message 
+    });
+  }
+};

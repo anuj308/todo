@@ -3,7 +3,8 @@ import {
   registerUser,
   loginUser,
   logoutUser,
-  getMe
+  getMe,
+  changePassword
 } from '../controllers/userController.js';
 import { protect } from '../middleware/authMiddleware.js';
 
@@ -20,5 +21,8 @@ router.post('/logout', logoutUser);
 
 // Get user profile - protected route
 router.get('/me', protect, getMe);
+
+// Change password - protected route
+router.put('/change-password', protect, changePassword);
 
 export default router;

@@ -8,6 +8,7 @@ import CalendarPage from './components/CalendarPage';
 import DiaryPage from './components/DiaryPage';
 import AnalyticsPage from './components/AnalyticsPage';
 import ProjectsPage from './components/ProjectsPage';
+import SettingsPage from './components/SettingsPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import RedirectIfAuthenticated from './components/RedirectIfAuthenticated';
 import Navbar from './components/Navbar';
@@ -87,6 +88,14 @@ const App = () => {
                                         element={
                                             <ProtectedRoute>
                                                 <ProjectsPage />
+                                            </ProtectedRoute>
+                                        } 
+                                    />
+                                    <Route 
+                                        path="/settings" 
+                                        element={
+                                            <ProtectedRoute>
+                                                <SettingsPage />
                                             </ProtectedRoute>
                                         } 
                                     />

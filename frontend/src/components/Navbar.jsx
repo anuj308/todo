@@ -38,6 +38,7 @@ const Navbar = () => {
           <Link to="/diary" className="nav-link">Diary</Link>
           <Link to="/projects" className="nav-link">Projects</Link>
           <Link to="/analytics" className="nav-link">Analytics</Link>
+          <Link to="/settings" className="nav-link">Settings</Link>
         </div>
         <div className="nav-auth">
           <button 
