@@ -6,6 +6,7 @@ import { ThemeProvider } from './src/context/ThemeContext';
 import { FoldersProvider } from './src/context/FoldersContext';
 import { NotesProvider } from './src/context/NotesContext';
 import { TodoProvider } from './src/context/TodoContext';
+import { CalendarProvider } from './src/context/CalendarContext';
 import AppNavigator from './src/navigation/AppNavigator';
 
 export default function App() {
@@ -15,8 +16,10 @@ export default function App() {
         <FoldersProvider>
           <NotesProvider>
             <TodoProvider>
-              <AppNavigator />
-              <StatusBar style="auto" />
+              <CalendarProvider>
+                <AppNavigator />
+                <StatusBar style="auto" />
+              </CalendarProvider>
             </TodoProvider>
           </NotesProvider>
         </FoldersProvider>
