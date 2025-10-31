@@ -8,6 +8,7 @@ import NoteEditorScreen from '../screens/Notes/NoteEditorScreen';
 import TodoListScreen from '../screens/Todos/TodoListScreen';
 import SettingsScreen from '../screens/Settings/SettingsScreen';
 import CalendarScreen from '../screens/Calendar/CalendarScreen';
+import DiaryScreen from '../screens/Diary/DiaryScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -23,7 +24,7 @@ const NotesStack = () => {
 };
 
 const MainNavigator = () => {
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
 
   return (
     <Tab.Navigator
@@ -75,6 +76,17 @@ const MainNavigator = () => {
           tabBarLabel: 'Calendar',
           tabBarIcon: ({ color, size }) => (
             <Text style={{ fontSize: size, color }}>📅</Text>
+          ),
+          headerShown: false,
+        }}
+      />
+      <Tab.Screen
+        name="Diary"
+        component={DiaryScreen}
+        options={{
+          tabBarLabel: 'Diary',
+          tabBarIcon: ({ color, size }) => (
+            <Text style={{ fontSize: size, color }}>📔</Text>
           ),
           headerShown: false,
         }}
