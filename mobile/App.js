@@ -8,6 +8,8 @@ import { NotesProvider } from './src/context/NotesContext';
 import { TodoProvider } from './src/context/TodoContext';
 import { CalendarProvider } from './src/context/CalendarContext';
 import { DiaryProvider } from './src/context/DiaryContext';
+import { ProjectProvider } from './src/context/ProjectContext';
+import { AnalyticsProvider } from './src/context/AnalyticsContext';
 import AppNavigator from './src/navigation/AppNavigator';
 
 export default function App() {
@@ -19,8 +21,12 @@ export default function App() {
             <TodoProvider>
               <CalendarProvider>
                 <DiaryProvider>
-                  <AppNavigator />
-                  <StatusBar style="auto" />
+                  <ProjectProvider>
+                    <AnalyticsProvider>
+                      <AppNavigator />
+                      <StatusBar style="auto" />
+                    </AnalyticsProvider>
+                  </ProjectProvider>
                 </DiaryProvider>
               </CalendarProvider>
             </TodoProvider>

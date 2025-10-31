@@ -9,6 +9,9 @@ import TodoListScreen from '../screens/Todos/TodoListScreen';
 import SettingsScreen from '../screens/Settings/SettingsScreen';
 import CalendarScreen from '../screens/Calendar/CalendarScreen';
 import DiaryScreen from '../screens/Diary/DiaryScreen';
+import ProjectListScreen from '../screens/Projects/ProjectListScreen';
+import ProjectDetailScreen from '../screens/Projects/ProjectDetailScreen';
+import AnalyticsDashboardScreen from '../screens/Analytics/AnalyticsDashboardScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -19,6 +22,16 @@ const NotesStack = () => {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="NotesList" component={NotesListScreen} />
       <Stack.Screen name="NoteEditor" component={NoteEditorScreen} />
+    </Stack.Navigator>
+  );
+};
+
+// Projects Stack Navigator (includes list and detail)
+const ProjectsStack = () => {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="ProjectList" component={ProjectListScreen} />
+      <Stack.Screen name="ProjectDetail" component={ProjectDetailScreen} />
     </Stack.Navigator>
   );
 };
@@ -87,6 +100,28 @@ const MainNavigator = () => {
           tabBarLabel: 'Diary',
           tabBarIcon: ({ color, size }) => (
             <Text style={{ fontSize: size, color }}>📔</Text>
+          ),
+          headerShown: false,
+        }}
+      />
+      <Tab.Screen
+        name="Projects"
+        component={ProjectsStack}
+        options={{
+          tabBarLabel: 'Projects',
+          tabBarIcon: ({ color, size }) => (
+            <Text style={{ fontSize: size, color }}>🎯</Text>
+          ),
+          headerShown: false,
+        }}
+      />
+      <Tab.Screen
+        name="Analytics"
+        component={AnalyticsDashboardScreen}
+        options={{
+          tabBarLabel: 'Analytics',
+          tabBarIcon: ({ color, size }) => (
+            <Text style={{ fontSize: size, color }}>📊</Text>
           ),
           headerShown: false,
         }}
