@@ -6,6 +6,7 @@ import { useTheme } from '../context/ThemeContext';
 import NotesListScreen from '../screens/Notes/NotesListScreen';
 import NoteEditorScreen from '../screens/Notes/NoteEditorScreen';
 import TodoListScreen from '../screens/Todos/TodoListScreen';
+import SettingsScreen from '../screens/Settings/SettingsScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -62,6 +63,17 @@ const MainNavigator = () => {
           tabBarLabel: 'Todos',
           tabBarIcon: ({ color, size }) => (
             <Text style={{ fontSize: size, color }}>✓</Text>
+          ),
+          headerShown: false,
+        }}
+      />
+      <Tab.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{
+          tabBarLabel: 'Settings',
+          tabBarIcon: ({ color, size }) => (
+            <Text style={{ fontSize: size, color }}>⚙️</Text>
           ),
           headerShown: false,
         }}
