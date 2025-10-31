@@ -1,9 +1,23 @@
 import React from 'react';
+import { Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useTheme } from '../context/ThemeContext';
 import NotesListScreen from '../screens/Notes/NotesListScreen';
+import NoteEditorScreen from '../screens/Notes/NoteEditorScreen';
 
 const Tab = createBottomTabNavigator();
+const Stack = createNativeStackNavigator();
+
+// Notes Stack Navigator (includes list and editor)
+const NotesStack = () => {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="NotesList" component={NotesListScreen} />
+      <Stack.Screen name="NoteEditor" component={NoteEditorScreen} />
+    </Stack.Navigator>
+  );
+};
 
 const MainNavigator = () => {
   const { colors, isDark } = useTheme();
@@ -31,12 +45,13 @@ const MainNavigator = () => {
     >
       <Tab.Screen 
         name="Notes" 
-        component={NotesListScreen}
+        component={NotesStack}
         options={{
           tabBarLabel: 'Notes',
           tabBarIcon: ({ color, size }) => (
             <Text style={{ fontSize: size, color }}>📝</Text>
           ),
+          headerShown: false,
         }}
       />
     </Tab.Navigator>
