@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useTheme } from '../context/ThemeContext';
 import NotesListScreen from '../screens/Notes/NotesListScreen';
 import NoteEditorScreen from '../screens/Notes/NoteEditorScreen';
+import TodoListScreen from '../screens/Todos/TodoListScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -50,6 +51,17 @@ const MainNavigator = () => {
           tabBarLabel: 'Notes',
           tabBarIcon: ({ color, size }) => (
             <Text style={{ fontSize: size, color }}>📝</Text>
+          ),
+          headerShown: false,
+        }}
+      />
+      <Tab.Screen 
+        name="Todos" 
+        component={TodoListScreen}
+        options={{
+          tabBarLabel: 'Todos',
+          tabBarIcon: ({ color, size }) => (
+            <Text style={{ fontSize: size, color }}>✓</Text>
           ),
           headerShown: false,
         }}
